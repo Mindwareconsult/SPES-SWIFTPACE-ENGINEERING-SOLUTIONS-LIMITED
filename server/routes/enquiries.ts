@@ -4,13 +4,14 @@ import path from 'path';
 import fs from 'fs';
 import { db } from '../database/db.ts';
 import { authenticateAdmin } from '../middleware/auth.ts';
+import { UPLOAD_DIR } from '../config/paths.ts';
 
 const router = Router();
 
 // Configure multer for enquiry attachments
 const attachmentStorage = multer.diskStorage({
   destination: (_req, _file, cb) => {
-    const dir = path.join(process.cwd(), 'uploads', 'attachments');
+    const dir = path.join(UPLOAD_DIR, 'attachments');
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
     }

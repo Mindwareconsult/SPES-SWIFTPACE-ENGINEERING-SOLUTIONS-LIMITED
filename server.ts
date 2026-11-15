@@ -3,9 +3,10 @@ import express from 'express';
 import type { Request, Response, NextFunction } from 'express';
 import path from 'path';
 import cookieParser from 'cookie-parser';
-import { initDatabase } from './server/database/db.ts';
+import { db, initDatabase } from './server/database/db.ts';
 import { ensureAuthenticProjectsAndMedia } from './server/database/seed_authentic_projects.ts';
-import { authenticateAdmin } from './server/middleware/auth.ts';
+import { authenticateAdmin, isAllowedOrigin } from './server/middleware/auth.ts';
+import { BUNDLED_UPLOADS_DIR, PUBLIC_DIR, UPLOAD_DIR } from './server/config/paths.ts';
 import authRoutes from './server/routes/auth.ts';
 import projectsRoutes from './server/routes/projects.ts';
 import blogRoutes from './server/routes/blog.ts';
@@ -28,10 +29,11 @@ async function startServer() {
 
   const app = express();
   app.disable('x-powered-by');
-  app.set('trust proxy', 1);
+  const trustProxyHops = parseInt(process.env.TRUST_PROXY_HOPS || '2', 10);
+  app.set('trust proxy', Number.isFinite(trustProxyHops) ? trustProxyHops : 2);
   const PORT = resolvePort();
 
-  // Security headers compatible with embedded preview & production TLS
+  // Security headers compatible with embedded preview, Vercel proxy, and TLS
   app.use((_req, res, next) => {
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
@@ -39,19 +41,52 @@ async function startServer() {
     next();
   });
 
+  // Strict origin-allowlisted CORS for cross-origin Vercel Preview/Frontend -> Express backend calls
+  app.use((req, res, next) => {
+    const origin = typeof req.headers.origin === 'string' ? req.headers.origin : undefined;
+    if (origin && isAllowedOrigin(origin, req)) {
+      res.setHeader('Access-Control-Allow-Origin', origin);
+      res.setHeader('Vary', 'Origin');
+      res.setHeader('Access-Control-Allow-Credentials', 'true');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+      if (req.method === 'OPTIONS') {
+        return res.status(204).end();
+      }
+    }
+    next();
+  });
+
   app.use(express.json({ limit: '25mb' }));
   app.use(express.urlencoded({ extended: true, limit: '25mb' }));
   app.use(cookieParser());
 
-  // Protected static directory for confidential client enquiry attachments
-  const uploadsPath = path.join(process.cwd(), 'uploads');
-  app.use('/uploads/attachments', authenticateAdmin, express.static(path.join(uploadsPath, 'attachments')));
+  // Protected static directory for confidential client enquiry attachments (NEVER expose publicly)
+  app.use(
+    '/uploads/attachments',
+    authenticateAdmin,
+    express.static(path.join(UPLOAD_DIR, 'attachments'), {
+      setHeaders: (res) => {
+        res.setHeader('Cache-Control', 'private, no-store');
+      }
+    })
+  );
 
   // Public static directories for published project, blog, and media images
-  app.use('/uploads', express.static(uploadsPath));
+  app.use(
+    '/uploads',
+    express.static(UPLOAD_DIR, {
+      maxAge: '1d'
+    })
+  );
+  if (path.resolve(UPLOAD_DIR) !== path.resolve(BUNDLED_UPLOADS_DIR)) {
+    app.use('/uploads/projects', express.static(path.join(BUNDLED_UPLOADS_DIR, 'projects'), { maxAge: '1d' }));
+    app.use('/uploads/blog', express.static(path.join(BUNDLED_UPLOADS_DIR, 'blog'), { maxAge: '1d' }));
+    app.use('/uploads/media', express.static(path.join(BUNDLED_UPLOADS_DIR, 'media'), { maxAge: '1d' }));
+  }
 
   // Static directory for local public assets (including official logos & references)
-  app.use('/assets', express.static(path.join(process.cwd(), 'public', 'assets')));
+  app.use('/assets', express.static(path.join(PUBLIC_DIR, 'assets'), { maxAge: '7d' }));
 
   // API Routes
   app.use('/api/admin', authRoutes);
@@ -62,14 +97,26 @@ async function startServer() {
   app.use('/api/settings', settingsRoutes);
   app.use('/api/admin', dashboardRoutes);
 
-  // Health check endpoint
+  // Health & DB readiness check endpoint
   app.get('/api/health', (_req, res) => {
-    res.json({
-      status: 'ok',
-      company: 'SPES Swiftpace Engineering Solutions Limited',
-      rc: 'RC:8978524',
-      uptime: process.uptime()
-    });
+    try {
+      const row = db
+        .prepare("SELECT COUNT(*) as count FROM projects WHERE publication_status = 'published'")
+        .get() as { count: number };
+      res.json({
+        status: 'ok',
+        database: 'connected',
+        publishedProjects: row.count,
+        company: 'SPES Swiftpace Engineering Solutions Limited',
+        rc: 'RC:8978524',
+        uptime: process.uptime()
+      });
+    } catch {
+      res.status(503).json({
+        status: 'error',
+        database: 'unavailable'
+      });
+    }
   });
 
   // Ensure unmatched or errored /api/* requests always return JSON rather than SPA HTML

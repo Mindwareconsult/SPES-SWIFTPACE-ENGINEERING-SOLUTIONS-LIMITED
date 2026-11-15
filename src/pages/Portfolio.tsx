@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { SEOHead } from '../components/common/SEOHead';
 import { MotionReveal, StaggerContainer, StaggerItem } from '../components/common/MotionReveal';
 import { Project } from '../types';
+import { applyImageFallback, resolveApiUrl, resolveMediaUrl } from '../utils/api';
 import { MapPin, ArrowRight } from 'lucide-react';
 
 export const Portfolio: React.FC = () => {
@@ -38,7 +39,7 @@ export const Portfolio: React.FC = () => {
   useEffect(() => {
     setLoading(true);
     const query = activeCategory === 'All Projects' ? '' : `?category=${encodeURIComponent(activeCategory)}`;
-    fetch(`/api/projects${query}`)
+    fetch(resolveApiUrl(`/api/projects${query}`))
       .then((res) => res.json())
       .then((data) => {
         if (data.projects) setProjects(data.projects);
@@ -115,9 +116,10 @@ export const Portfolio: React.FC = () => {
                 >
                   <div className="relative h-64 overflow-hidden">
                     <img
-                      src={project.cover_image}
+                      src={resolveMediaUrl(project.cover_image)}
                       alt={`${project.title} — ${project.category}`}
                       loading="lazy"
+                      onError={(e) => applyImageFallback(e)}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#081D43] via-transparent to-transparent" />

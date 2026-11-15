@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BlogPost, BlogCategory } from '../../types';
 import { authFetch } from '../../utils/authFetch';
+import { applyImageFallback, resolveApiUrl, resolveMediaUrl } from '../../utils/api';
 import { 
   Plus, 
   Trash2, 
@@ -50,7 +51,7 @@ export const AdminBlog: React.FC = () => {
 
   useEffect(() => {
     fetchPosts();
-    fetch('/api/blog/categories')
+    fetch(resolveApiUrl('/api/blog/categories'))
       .then((res) => res.json())
       .then((data) => {
         if (data.categories) setCategories(data.categories);
@@ -192,8 +193,9 @@ export const AdminBlog: React.FC = () => {
                     <td className="p-4 font-semibold text-white max-w-sm">
                       <div className="flex items-center gap-3">
                         <img
-                          src={post.featured_image}
+                          src={resolveMediaUrl(post.featured_image)}
                           alt={post.title}
+                          onError={(e) => applyImageFallback(e)}
                           className="w-12 h-12 rounded-lg object-cover flex-shrink-0 border border-white/10"
                         />
                         <div>

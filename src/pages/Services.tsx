@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { SEOHead } from '../components/common/SEOHead';
 import { MotionReveal } from '../components/common/MotionReveal';
 import { servicesData } from '../data/servicesData';
+import { applyImageFallback, resolveMediaUrl } from '../utils/api';
 import { 
   ArrowRight, 
   Compass, 
@@ -81,8 +82,9 @@ export const Services: React.FC = () => {
               >
                 <div className="relative rounded-2xl overflow-hidden border border-[#12BCEB]/30 shadow-2xl group">
                   <img
-                    src={service.heroImage}
+                    src={resolveMediaUrl(service.heroImage)}
                     alt={service.title}
+                    onError={(e) => applyImageFallback(e)}
                     className="w-full h-80 sm:h-96 object-cover group-hover:scale-105 transition-transform duration-700"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#06152F] via-transparent to-transparent opacity-80" />

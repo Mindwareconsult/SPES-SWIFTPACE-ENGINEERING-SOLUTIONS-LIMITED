@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { BrandLogo } from '../../components/common/BrandLogo';
 import { useAuth } from '../../context/AuthContext';
+import { resolveApiUrl } from '../../utils/api';
 import { Lock, Eye, EyeOff, ShieldCheck, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
 
 export const AdminLogin: React.FC = () => {
@@ -25,7 +26,7 @@ export const AdminLogin: React.FC = () => {
 
   // Check safe auth initialization status from server
   useEffect(() => {
-    fetch('/api/admin/auth-status')
+    fetch(resolveApiUrl('/api/admin/auth-status'))
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (data && typeof data.initialSetupPending === 'boolean') {

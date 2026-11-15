@@ -1,3 +1,5 @@
+import { isCrossOriginApi, resolveApiUrl } from './api';
+
 export interface StoredAuthSession {
   token: string;
   expiresAt: number;
@@ -33,8 +35,9 @@ export function getStoredSession(): StoredAuthSession | null {
   }
 
   // Only allow tab-scoped sessionStorage fallback when running inside a cross-site iframe
-  // where browsers block third-party HttpOnly cookies. Never read/write localStorage.
-  if (isEmbeddedIframe()) {
+  // or when explicitly connected to a cross-origin preview API where third-party cookies may be restricted.
+  // Never read/write localStorage.
+  if (isEmbeddedIframe() || isCrossOriginApi()) {
     try {
       const raw = window.sessionStorage.getItem(IFRAME_SESSION_KEY);
       if (raw) {
@@ -80,7 +83,7 @@ export function setFallbackBearerSession(token: string, expiresAt: number): void
     // Ignore
   }
 
-  if (isEmbeddedIframe()) {
+  if (isEmbeddedIframe() || isCrossOriginApi()) {
     try {
       window.sessionStorage.setItem(IFRAME_SESSION_KEY, JSON.stringify(session));
     } catch {
@@ -102,7 +105,7 @@ export function clearStoredSession(): void {
 
 export async function verifyHttpOnlyCookieActive(): Promise<boolean> {
   try {
-    const res = await fetch('/api/admin/me', {
+    const res = await fetch(resolveApiUrl('/api/admin/me'), {
       method: 'GET',
       headers: {
         'X-Requested-With': 'XMLHttpRequest'
@@ -127,7 +130,9 @@ export async function authFetch(input: RequestInfo | URL, init: RequestInit = {}
     headers.set('X-Requested-With', 'XMLHttpRequest');
   }
 
-  const response = await fetch(input, {
+  const target = typeof input === 'string' ? resolveApiUrl(input) : input;
+
+  const response = await fetch(target, {
     ...init,
     headers,
     credentials: 'include'

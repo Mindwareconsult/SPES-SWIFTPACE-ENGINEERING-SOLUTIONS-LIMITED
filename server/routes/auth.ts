@@ -8,6 +8,7 @@ import {
   authenticateAdmin,
   extractTokenFromRequest,
   revokeToken,
+  isTrustedCsrfRequest,
   TOKEN_TTL_MS
 } from '../middleware/auth.ts';
 import type { AuthRequest } from '../middleware/auth.ts';
@@ -54,12 +55,28 @@ function getCookieOptions(req: Request) {
 
   const secFetchSite = typeof req.headers['sec-fetch-site'] === 'string' ? req.headers['sec-fetch-site'] : '';
   const secFetchDest = typeof req.headers['sec-fetch-dest'] === 'string' ? req.headers['sec-fetch-dest'] : '';
-  const isCrossSiteFrame = isHttps && (secFetchSite === 'cross-site' || secFetchDest === 'iframe');
+  const originHeader = typeof req.headers.origin === 'string' ? req.headers.origin : '';
+  const requestHost =
+    (typeof req.headers['x-forwarded-host'] === 'string' && req.headers['x-forwarded-host'].split(',')[0].trim()) ||
+    req.headers.host ||
+    '';
+
+  let isCrossOriginHeader = false;
+  if (originHeader && requestHost) {
+    try {
+      isCrossOriginHeader = new URL(originHeader).host !== requestHost;
+    } catch {
+      isCrossOriginHeader = false;
+    }
+  }
+
+  const needsSameSiteNone =
+    isHttps && (secFetchSite === 'cross-site' || secFetchDest === 'iframe' || isCrossOriginHeader);
 
   return {
     httpOnly: true,
     secure: isHttps,
-    sameSite: (isCrossSiteFrame ? 'none' : 'lax') as 'none' | 'lax',
+    sameSite: (needsSameSiteNone ? 'none' : 'lax') as 'none' | 'lax',
     path: '/',
     maxAge: TOKEN_TTL_MS
   };
@@ -197,21 +214,8 @@ router.post('/login', (req, res) => {
 // POST /api/admin/logout
 router.post('/logout', (req, res) => {
   const { token, source } = extractTokenFromRequest(req);
-  if (source === 'cookie') {
-    const hasCustomHeader = Boolean(req.headers['x-requested-with']);
-    const origin = req.headers.origin;
-    const host = req.headers.host;
-    let sameOrigin = false;
-    if (origin && host) {
-      try {
-        sameOrigin = new URL(origin).host === host;
-      } catch {
-        sameOrigin = false;
-      }
-    }
-    if (!hasCustomHeader && !sameOrigin) {
-      return res.status(403).json({ error: 'CSRF validation failed for logout request.' });
-    }
+  if (source === 'cookie' && !isTrustedCsrfRequest(req)) {
+    return res.status(403).json({ error: 'CSRF validation failed for logout request.' });
   }
 
   revokeToken(token);

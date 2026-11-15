@@ -7,6 +7,7 @@ import { motion } from 'framer-motion';
 import { servicesData } from '../data/servicesData';
 import { faqData } from '../data/faqData';
 import { Project, BlogPost } from '../types';
+import { applyImageFallback, resolveApiUrl, resolveMediaUrl } from '../utils/api';
 import { 
   ArrowRight, 
   Building2, 
@@ -35,7 +36,7 @@ export const Home: React.FC = () => {
 
   useEffect(() => {
     // Fetch featured projects
-    fetch('/api/projects?featured=true')
+    fetch(resolveApiUrl('/api/projects?featured=true'))
       .then((res) => res.json())
       .then((data) => {
         if (data.projects) setProjects(data.projects.slice(0, 6));
@@ -43,7 +44,7 @@ export const Home: React.FC = () => {
       .catch(() => {});
 
     // Fetch latest published blog articles
-    fetch('/api/blog?limit=3')
+    fetch(resolveApiUrl('/api/blog?limit=3'))
       .then((res) => res.json())
       .then((data) => {
         if (data.posts) setBlogs(data.posts);
@@ -306,9 +307,10 @@ export const Home: React.FC = () => {
                     {/* Service Image with Dark Navy Gradient */}
                     <div className="relative h-52 overflow-hidden">
                       <img
-                        src={service.heroImage}
+                        src={resolveMediaUrl(service.heroImage)}
                         alt={service.title}
                         loading="lazy"
+                        onError={(e) => applyImageFallback(e)}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-[#081D43] via-[#081D43]/40 to-transparent" />
@@ -456,9 +458,10 @@ export const Home: React.FC = () => {
                   >
                     <div className="relative h-60 overflow-hidden">
                       <img
-                        src={project.cover_image}
+                        src={resolveMediaUrl(project.cover_image)}
                         alt={`${project.title} — ${project.category}`}
                         loading="lazy"
+                        onError={(e) => applyImageFallback(e)}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-[#081D43] via-transparent to-transparent" />
@@ -583,9 +586,10 @@ export const Home: React.FC = () => {
       <section className="relative py-24 bg-[#040D1E] overflow-hidden">
         <div className="absolute inset-0 opacity-15">
           <img
-            src="/uploads/projects/ijebu-ode-substructure-foundation/ijebu-ode-foundation-overview-01.jpg"
+            src={resolveMediaUrl('/uploads/projects/ijebu-ode-substructure-foundation/ijebu-ode-foundation-overview-01.jpg')}
             alt="SPES Swiftpace substructure concrete foundation and blockwork site in Ijebu Ode"
             loading="lazy"
+            onError={(e) => applyImageFallback(e)}
             className="w-full h-full object-cover"
           />
         </div>
@@ -640,8 +644,9 @@ export const Home: React.FC = () => {
                 >
                   <div className="relative h-48 overflow-hidden">
                     <img
-                      src={article.featured_image}
+                      src={resolveMediaUrl(article.featured_image)}
                       alt={article.title}
+                      onError={(e) => applyImageFallback(e)}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#081D43] via-transparent to-transparent" />

@@ -3,6 +3,7 @@ import { useParams, Link, Navigate } from 'react-router-dom';
 import { SEOHead } from '../components/common/SEOHead';
 import { MotionReveal } from '../components/common/MotionReveal';
 import { BlogPost } from '../types';
+import { applyImageFallback, resolveApiUrl, resolveMediaUrl } from '../utils/api';
 import { 
   ChevronRight, 
   Calendar, 
@@ -22,7 +23,7 @@ export const BlogDetail: React.FC = () => {
 
   useEffect(() => {
     setLoading(true);
-    fetch(`/api/blog/${articleSlug}`)
+    fetch(resolveApiUrl(`/api/blog/${articleSlug}`))
       .then((res) => {
         if (!res.ok) throw new Error('Not found');
         return res.json();
@@ -102,7 +103,7 @@ export const BlogDetail: React.FC = () => {
       <SEOHead 
         title={`${post.title} | SPES Swiftpace Engineering Insights`}
         description={post.excerpt}
-        ogImage={post.featured_image}
+        ogImage={resolveMediaUrl(post.featured_image)}
         canonicalPath={`/blog/${post.slug}`}
       />
 
@@ -164,8 +165,9 @@ export const BlogDetail: React.FC = () => {
         <MotionReveal direction="up" duration={0.7}>
           <div className="relative rounded-2xl overflow-hidden border border-white/10 shadow-2xl mb-12">
             <img
-              src={post.featured_image}
+              src={resolveMediaUrl(post.featured_image)}
               alt={post.title}
+              onError={(e) => applyImageFallback(e)}
               className="w-full h-80 sm:h-[450px] object-cover"
             />
           </div>
@@ -237,8 +239,9 @@ export const BlogDetail: React.FC = () => {
                   className="group rounded-xl bg-[#081D43]/60 border border-white/10 hover:border-[#12BCEB]/40 overflow-hidden flex flex-col transition-all p-4 space-y-3"
                 >
                   <img
-                    src={r.featured_image}
+                    src={resolveMediaUrl(r.featured_image)}
                     alt={r.title}
+                    onError={(e) => applyImageFallback(e)}
                     className="w-full h-32 rounded-lg object-cover"
                   />
                   <div className="text-[10px] text-[#12BCEB] font-bold uppercase">

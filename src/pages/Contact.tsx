@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { SEOHead } from '../components/common/SEOHead';
 import { MotionReveal } from '../components/common/MotionReveal';
+import { resolveApiUrl } from '../utils/api';
 import { 
   MapPin, 
   Phone, 
@@ -102,7 +103,7 @@ export const Contact: React.FC = () => {
         data.append('attachment', file);
       }
 
-      const res = await fetch('/api/enquiries', {
+      const res = await fetch(resolveApiUrl('/api/enquiries'), {
         method: 'POST',
         body: data
       });

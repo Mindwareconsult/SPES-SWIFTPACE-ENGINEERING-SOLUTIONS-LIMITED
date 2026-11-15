@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Project } from '../../types';
 import { authFetch } from '../../utils/authFetch';
+import { applyImageFallback, resolveMediaUrl } from '../../utils/api';
 import { 
   Plus, 
   Trash2, 
@@ -230,8 +231,9 @@ export const AdminProjects: React.FC = () => {
             >
               <div className="relative h-44 overflow-hidden">
                 <img
-                  src={p.cover_image}
+                  src={resolveMediaUrl(p.cover_image)}
                   alt={p.title}
+                  onError={(e) => applyImageFallback(e)}
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute top-3 left-3">

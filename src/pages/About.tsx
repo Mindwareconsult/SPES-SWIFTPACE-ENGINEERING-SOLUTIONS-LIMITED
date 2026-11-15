@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { SEOHead } from '../components/common/SEOHead';
 import { MotionReveal, StaggerContainer, StaggerItem } from '../components/common/MotionReveal';
+import { applyImageFallback, resolveMediaUrl } from '../utils/api';
 import { 
   ShieldCheck, 
   Target, 
@@ -196,9 +197,10 @@ export const About: React.FC = () => {
             <div className="space-y-4">
               <div className="h-56 rounded-2xl overflow-hidden border border-white/10 group shadow-xl bg-[#040D1E] relative">
                 <img
-                  src="/uploads/projects/ijebu-ode-substructure-foundation/ijebu-ode-spes-team-rebar-02.jpg"
+                  src={resolveMediaUrl('/uploads/projects/ijebu-ode-substructure-foundation/ijebu-ode-spes-team-rebar-02.jpg')}
                   alt="SPES field operative tying pad footing reinforcement in Ijebu Ode"
                   loading="lazy"
+                  onError={(e) => applyImageFallback(e)}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-3">
@@ -208,9 +210,10 @@ export const About: React.FC = () => {
 
               <div className="h-64 rounded-2xl overflow-hidden border border-white/10 group shadow-xl bg-[#040D1E] relative">
                 <img
-                  src="/assets/projects/suspended-slab-decking/suspended-slab-decking-01.jpg"
+                  src={resolveMediaUrl('/assets/projects/suspended-slab-decking/suspended-slab-decking-01.jpg')}
                   alt="Supervisory engineers inspecting structural drawings on slab deck"
                   loading="lazy"
+                  onError={(e) => applyImageFallback(e)}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-3">
@@ -222,9 +225,10 @@ export const About: React.FC = () => {
             <div className="space-y-4 pt-8">
               <div className="h-64 rounded-2xl overflow-hidden border border-white/10 group shadow-xl bg-[#040D1E] relative">
                 <img
-                  src="/assets/projects/curvilinear-mixed-use/curvilinear-mixed-use-01.jpg"
+                  src={resolveMediaUrl('/assets/projects/curvilinear-mixed-use/curvilinear-mixed-use-01.jpg')}
                   alt="Curvilinear 4-storey mixed use architectural building"
                   loading="lazy"
+                  onError={(e) => applyImageFallback(e)}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-3">
@@ -234,9 +238,10 @@ export const About: React.FC = () => {
 
               <div className="h-56 rounded-2xl overflow-hidden border border-white/10 group shadow-xl bg-[#040D1E] relative">
                 <img
-                  src="/uploads/projects/contemporary-terraced-residential/terraced-residential-courtyard-01.jpg"
+                  src={resolveMediaUrl('/uploads/projects/contemporary-terraced-residential/terraced-residential-courtyard-01.jpg')}
                   alt="Contemporary multi-unit terraced residential development"
                   loading="lazy"
+                  onError={(e) => applyImageFallback(e)}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-3">
@@ -341,8 +346,9 @@ export const About: React.FC = () => {
                   >
                     <div className="relative h-44 overflow-hidden">
                       <img
-                        src={cap.image}
+                        src={resolveMediaUrl(cap.image)}
                         alt={cap.title}
+                        onError={(e) => applyImageFallback(e)}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-[#06152F] via-transparent to-transparent" />

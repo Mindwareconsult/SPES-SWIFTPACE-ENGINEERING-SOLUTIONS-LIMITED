@@ -1,24 +1,8 @@
 import Database from 'better-sqlite3';
-import path from 'path';
-import fs from 'fs';
 import bcrypt from 'bcryptjs';
+import { DB_PATH, syncSeedUploadsToUploadDir } from '../config/paths.ts';
 
-const DB_PATH = path.join(process.cwd(), 'data', 'spes_database.sqlite');
-
-// Ensure data and uploads directories exist
-const dataDir = path.dirname(DB_PATH);
-if (!fs.existsSync(dataDir)) {
-  fs.mkdirSync(dataDir, { recursive: true });
-}
-
-const uploadsDir = path.join(process.cwd(), 'uploads');
-const uploadSubdirs = ['projects', 'blog', 'attachments', 'media'];
-for (const sub of uploadSubdirs) {
-  const dir = path.join(uploadsDir, sub);
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-  }
-}
+syncSeedUploadsToUploadDir();
 
 export const db = new Database(DB_PATH);
 db.pragma('journal_mode = WAL');

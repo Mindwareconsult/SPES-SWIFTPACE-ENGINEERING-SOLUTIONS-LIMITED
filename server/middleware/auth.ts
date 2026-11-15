@@ -4,6 +4,7 @@ import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
 import { db } from '../database/db.ts';
+import { resolveJwtSecretPath } from '../config/paths.ts';
 
 export const TOKEN_TTL_SECONDS = 24 * 60 * 60; // 24 hours
 export const TOKEN_TTL_MS = TOKEN_TTL_SECONDS * 1000;
@@ -16,10 +17,10 @@ function resolveJwtSecret(): string {
     }
     console.warn('[SPES Security] JWT_SECRET is shorter than 32 characters and was rejected. Using persisted secret instead.');
   } else if (process.env.NODE_ENV === 'production') {
-    console.warn('[SPES Security] JWT_SECRET environment variable is not set in production. Falling back to data/.jwt_secret (ensure data/ is persistent or set JWT_SECRET).');
+    console.warn('[SPES Security] JWT_SECRET environment variable is not set in production. Falling back to persisted secret file (set JWT_SECRET for multi-instance deployments).');
   }
 
-  const secretFile = path.join(process.cwd(), 'data', '.jwt_secret');
+  const secretFile = resolveJwtSecretPath();
   try {
     if (fs.existsSync(secretFile)) {
       const stored = fs.readFileSync(secretFile, 'utf8').trim();
@@ -114,6 +115,77 @@ export function revokeToken(token: string | null) {
   }
 }
 
+function getConfiguredOriginPatterns(): string[] {
+  const raw = [
+    process.env.ALLOWED_ORIGINS,
+    process.env.FRONTEND_URL,
+    process.env.APP_URL
+  ]
+    .filter((v): v is string => typeof v === 'string' && v.trim().length > 0)
+    .join(',');
+
+  return raw
+    .split(',')
+    .map((item) => item.trim().replace(/\/+$/, ''))
+    .filter(Boolean);
+}
+
+export function isAllowedOrigin(origin: string | undefined, req?: Request): boolean {
+  if (!origin) return false;
+  let parsedOrigin: URL;
+  try {
+    parsedOrigin = new URL(origin);
+  } catch {
+    return false;
+  }
+
+  const normalizedOrigin = `${parsedOrigin.protocol}//${parsedOrigin.host}`;
+
+  if (req) {
+    const directHost = typeof req.headers.host === 'string' ? req.headers.host.trim() : '';
+    const forwardedHostRaw = req.headers['x-forwarded-host'];
+    const forwardedHost =
+      typeof forwardedHostRaw === 'string' ? forwardedHostRaw.split(',')[0].trim() : '';
+
+    if ((directHost && parsedOrigin.host === directHost) || (forwardedHost && parsedOrigin.host === forwardedHost)) {
+      return true;
+    }
+  }
+
+  if (process.env.NODE_ENV !== 'production' && (parsedOrigin.hostname === 'localhost' || parsedOrigin.hostname === '127.0.0.1')) {
+    return true;
+  }
+
+  const patterns = getConfiguredOriginPatterns();
+  for (const pattern of patterns) {
+    if (pattern === normalizedOrigin) return true;
+    if (pattern.startsWith('https://*.') || pattern.startsWith('http://*.')) {
+      try {
+        const [scheme, wildcardHost] = pattern.split('://*.');
+        if (
+          parsedOrigin.protocol === `${scheme}:` &&
+          wildcardHost &&
+          (parsedOrigin.host === wildcardHost || parsedOrigin.host.endsWith(`.${wildcardHost}`))
+        ) {
+          return true;
+        }
+      } catch {
+        // Ignore malformed wildcard pattern
+      }
+    }
+  }
+
+  return false;
+}
+
+export function isTrustedCsrfRequest(req: Request): boolean {
+  if (req.headers['x-requested-with']) {
+    return true;
+  }
+  const origin = typeof req.headers.origin === 'string' ? req.headers.origin : undefined;
+  return isAllowedOrigin(origin, req);
+}
+
 export function authenticateAdmin(req: AuthRequest, res: Response, next: NextFunction) {
   const { token, source } = extractTokenFromRequest(req);
 
@@ -123,21 +195,8 @@ export function authenticateAdmin(req: AuthRequest, res: Response, next: NextFun
 
   // CSRF protection for cookie-only state-changing requests
   const isMutation = ['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method.toUpperCase());
-  if (source === 'cookie' && isMutation) {
-    const hasCustomHeader = Boolean(req.headers['x-requested-with']);
-    const origin = req.headers.origin;
-    const host = req.headers.host;
-    let sameOrigin = false;
-    if (origin && host) {
-      try {
-        sameOrigin = new URL(origin).host === host;
-      } catch {
-        sameOrigin = false;
-      }
-    }
-    if (!hasCustomHeader && !sameOrigin) {
-      return res.status(403).json({ error: 'CSRF validation failed for state-changing request.' });
-    }
+  if (source === 'cookie' && isMutation && !isTrustedCsrfRequest(req)) {
+    return res.status(403).json({ error: 'CSRF validation failed for state-changing request.' });
   }
 
   try {

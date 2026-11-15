@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Settings, Lock, CheckCircle2, AlertCircle, Save } from 'lucide-react';
 import { authFetch } from '../../utils/authFetch';
 import { useAuth } from '../../context/AuthContext';
+import { resolveApiUrl } from '../../utils/api';
 
 export const AdminSettings: React.FC = () => {
   const { updateSessionToken, refreshSession } = useAuth();
@@ -19,7 +20,7 @@ export const AdminSettings: React.FC = () => {
   const [updatingPassword, setUpdatingPassword] = useState(false);
 
   useEffect(() => {
-    fetch('/api/settings')
+    fetch(resolveApiUrl('/api/settings'))
       .then((res) => res.json())
       .then((data) => {
         setSettings(data.settings || {});

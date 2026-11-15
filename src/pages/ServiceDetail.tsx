@@ -3,6 +3,7 @@ import { useParams, Link, Navigate } from 'react-router-dom';
 import { SEOHead } from '../components/common/SEOHead';
 import { MotionReveal, StaggerContainer, StaggerItem } from '../components/common/MotionReveal';
 import { servicesData } from '../data/servicesData';
+import { applyImageFallback, resolveMediaUrl } from '../utils/api';
 import { 
   ArrowRight, 
   ChevronRight, 
@@ -56,8 +57,9 @@ export const ServiceDetail: React.FC = () => {
       <section className="relative pt-36 pb-20 px-4 sm:px-6 lg:px-8 overflow-hidden bg-gradient-to-b from-[#040D1E] via-[#06152F] to-[#081D43]/60 border-b border-white/10">
         <div className="absolute inset-0 z-0 opacity-20">
           <img
-            src={service.heroImage}
+            src={resolveMediaUrl(service.heroImage)}
             alt={service.title}
+            onError={(e) => applyImageFallback(e)}
             className="w-full h-full object-cover"
           />
         </div>
@@ -235,9 +237,10 @@ export const ServiceDetail: React.FC = () => {
                       className="group relative h-56 rounded-2xl overflow-hidden border border-white/10 hover:border-[#12BCEB]/50 transition-all bg-[#040D1E] shadow-lg"
                     >
                       <img
-                        src={img.src}
+                        src={resolveMediaUrl(img.src)}
                         alt={img.alt}
                         loading="lazy"
+                        onError={(e) => applyImageFallback(e)}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-[#06152F]/90 via-transparent to-transparent flex items-end p-4">

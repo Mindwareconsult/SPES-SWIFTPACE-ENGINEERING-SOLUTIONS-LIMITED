@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { db } from './db.ts';
+import { BUNDLED_UPLOADS_DIR, PUBLIC_DIR, UPLOAD_DIR } from '../config/paths.ts';
 
 interface SeedProject {
   title: string;
@@ -475,14 +476,25 @@ const AUTHENTIC_PROJECTS: SeedProject[] = [
 
 function getFileSize(webPath: string): number {
   const clean = webPath.replace(/^\/+/, '');
-  const candidate = clean.startsWith('assets/')
-    ? path.join(process.cwd(), 'public', clean)
-    : path.join(process.cwd(), clean);
-  try {
-    return fs.statSync(candidate).size;
-  } catch {
-    return 120000;
+  const candidates = clean.startsWith('assets/')
+    ? [path.join(PUBLIC_DIR, clean)]
+    : clean.startsWith('uploads/')
+      ? [
+          path.join(UPLOAD_DIR, clean.slice('uploads/'.length)),
+          path.join(BUNDLED_UPLOADS_DIR, clean.slice('uploads/'.length))
+        ]
+      : [path.join(process.cwd(), clean)];
+
+  for (const candidate of candidates) {
+    try {
+      if (fs.existsSync(candidate)) {
+        return fs.statSync(candidate).size;
+      }
+    } catch {
+      // Continue to fallback candidate
+    }
   }
+  return 120000;
 }
 
 export function ensureAuthenticProjectsAndMedia() {

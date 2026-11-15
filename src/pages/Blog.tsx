@@ -3,6 +3,7 @@ import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { SEOHead } from '../components/common/SEOHead';
 import { MotionReveal, StaggerContainer, StaggerItem } from '../components/common/MotionReveal';
 import { BlogPost, BlogCategory } from '../types';
+import { applyImageFallback, resolveApiUrl, resolveMediaUrl } from '../utils/api';
 import { 
   Search, 
   ArrowRight, 
@@ -23,7 +24,7 @@ export const Blog: React.FC = () => {
 
   // Load categories
   useEffect(() => {
-    fetch('/api/blog/categories')
+    fetch(resolveApiUrl('/api/blog/categories'))
       .then((res) => res.json())
       .then((data) => {
         if (data.categories) setCategories(data.categories);
@@ -49,7 +50,7 @@ export const Blog: React.FC = () => {
     params.set('page', String(page));
     params.set('limit', '9');
 
-    fetch(`/api/blog?${params.toString()}`)
+    fetch(resolveApiUrl(`/api/blog?${params.toString()}`))
       .then((res) => res.json())
       .then((data) => {
         setPosts(data.posts || []);
@@ -158,8 +159,9 @@ export const Blog: React.FC = () => {
                 <div className="group rounded-2xl bg-[#081D43] border border-white/10 hover:border-[#12BCEB]/50 overflow-hidden flex flex-col md:flex-row transition-all shadow-xl">
                   <div className="md:w-1/2 h-64 md:h-auto relative overflow-hidden">
                     <img
-                      src={featuredPost.featured_image}
+                      src={resolveMediaUrl(featuredPost.featured_image)}
                       alt={featuredPost.title}
+                      onError={(e) => applyImageFallback(e)}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-r from-transparent to-[#081D43]/90 md:block hidden" />
@@ -212,8 +214,9 @@ export const Blog: React.FC = () => {
                     >
                       <div className="relative h-48 overflow-hidden">
                         <img
-                          src={article.featured_image}
+                          src={resolveMediaUrl(article.featured_image)}
                           alt={article.title}
+                          onError={(e) => applyImageFallback(e)}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-[#081D43] via-transparent to-transparent" />

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { MediaItem } from '../../types';
 import { authFetch } from '../../utils/authFetch';
+import { applyImageFallback, resolveMediaUrl } from '../../utils/api';
 import { Upload, Trash2, Copy, Check, Filter } from 'lucide-react';
 
 export const AdminMedia: React.FC = () => {
@@ -158,9 +159,10 @@ export const AdminMedia: React.FC = () => {
             >
               <div className="relative h-32 overflow-hidden bg-black/40">
                 <img
-                  src={item.file_path}
+                  src={resolveMediaUrl(item.file_path)}
                   alt={item.filename}
                   loading="lazy"
+                  onError={(e) => applyImageFallback(e)}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
                 <div className="absolute top-1.5 left-1.5">

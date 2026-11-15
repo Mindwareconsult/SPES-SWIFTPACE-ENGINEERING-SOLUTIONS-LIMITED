@@ -8,6 +8,7 @@ import {
   verifyHttpOnlyCookieActive,
   clearStoredSession
 } from '../utils/authFetch';
+import { resolveApiUrl } from '../utils/api';
 
 export interface AdminUser {
   id: number;
@@ -116,7 +117,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = useCallback(async (usernameOrEmail: string, password: string): Promise<AdminUser> => {
     setSessionNotice(null);
 
-    const res = await fetch('/api/admin/login', {
+    const res = await fetch(resolveApiUrl('/api/admin/login'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

@@ -3,6 +3,7 @@ import { useParams, Link, Navigate } from 'react-router-dom';
 import { SEOHead } from '../components/common/SEOHead';
 import { MotionReveal } from '../components/common/MotionReveal';
 import { Project, ProjectImage } from '../types';
+import { applyImageFallback, resolveApiUrl, resolveMediaUrl } from '../utils/api';
 import { 
   ChevronRight, 
   ChevronLeft,
@@ -23,7 +24,7 @@ export const ProjectDetail: React.FC = () => {
 
   useEffect(() => {
     setLoading(true);
-    fetch(`/api/projects/${projectSlug}`)
+    fetch(resolveApiUrl(`/api/projects/${projectSlug}`))
       .then((res) => {
         if (!res.ok) throw new Error('Not found');
         return res.json();
@@ -93,8 +94,9 @@ export const ProjectDetail: React.FC = () => {
       <section className="relative pt-36 pb-20 px-4 sm:px-6 lg:px-8 overflow-hidden bg-[#040D1E] border-b border-white/10">
         <div className="absolute inset-0 z-0 opacity-25">
           <img
-            src={project.cover_image}
+            src={resolveMediaUrl(project.cover_image)}
             alt={project.title}
+            onError={(e) => applyImageFallback(e)}
             className="w-full h-full object-cover"
           />
         </div>
@@ -148,8 +150,9 @@ export const ProjectDetail: React.FC = () => {
             <MotionReveal direction="up" duration={0.7}>
               <div className="relative rounded-2xl overflow-hidden border border-white/10 shadow-2xl group bg-[#040D1E]">
                 <img
-                  src={project.cover_image}
+                  src={resolveMediaUrl(project.cover_image)}
                   alt={project.title}
+                  onError={(e) => applyImageFallback(e)}
                   className="w-full max-h-[540px] object-contain mx-auto"
                 />
                 {images.length > 0 && (
@@ -249,9 +252,10 @@ export const ProjectDetail: React.FC = () => {
                       className="group relative h-48 rounded-xl overflow-hidden border border-white/10 hover:border-[#12BCEB]/60 transition-all cursor-pointer shadow-lg bg-[#040D1E]"
                     >
                       <img
-                        src={img.image_path}
+                        src={resolveMediaUrl(img.image_path)}
                         alt={img.image_caption || `${project.title} photo ${idx + 1}`}
                         loading="lazy"
+                        onError={(e) => applyImageFallback(e)}
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-3">
@@ -380,8 +384,9 @@ export const ProjectDetail: React.FC = () => {
                         className="flex gap-3 group"
                       >
                         <img
-                          src={r.cover_image}
+                          src={resolveMediaUrl(r.cover_image)}
                           alt={r.title}
+                          onError={(e) => applyImageFallback(e)}
                           className="w-16 h-16 rounded-lg object-cover flex-shrink-0 border border-white/10"
                         />
                         <div>
@@ -439,8 +444,9 @@ export const ProjectDetail: React.FC = () => {
             )}
 
             <img
-              src={images[lightboxIndex].image_path}
+              src={resolveMediaUrl(images[lightboxIndex].image_path)}
               alt={images[lightboxIndex].image_caption || `${project.title} full view`}
+              onError={(e) => applyImageFallback(e)}
               className="max-w-full max-h-[75vh] object-contain rounded-lg shadow-2xl"
             />
 
@@ -473,7 +479,12 @@ export const ProjectDetail: React.FC = () => {
                     i === lightboxIndex ? 'border-[#12BCEB] scale-105' : 'border-white/20 opacity-60 hover:opacity-100'
                   }`}
                 >
-                  <img src={img.image_path} alt="" className="w-full h-full object-cover" />
+                  <img
+                    src={resolveMediaUrl(img.image_path)}
+                    alt=""
+                    onError={(e) => applyImageFallback(e)}
+                    className="w-full h-full object-cover"
+                  />
                 </button>
               ))}
             </div>

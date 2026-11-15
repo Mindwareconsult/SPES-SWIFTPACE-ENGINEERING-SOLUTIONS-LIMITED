@@ -4,6 +4,7 @@ import path from 'path';
 import fs from 'fs';
 import { db } from '../database/db.ts';
 import { authenticateAdmin } from '../middleware/auth.ts';
+import { UPLOAD_DIR } from '../config/paths.ts';
 
 const router = Router();
 
@@ -11,7 +12,7 @@ const mediaStorage = multer.diskStorage({
   destination: (req, _file, cb) => {
     const category = ((req.body.category as string) || 'general').toLowerCase();
     const sub = ['projects', 'blog', 'media'].includes(category) ? category : 'media';
-    const dir = path.join(process.cwd(), 'uploads', sub);
+    const dir = path.join(UPLOAD_DIR, sub);
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
     }
@@ -94,10 +95,13 @@ router.delete('/admin/:id', authenticateAdmin, (req, res) => {
     return res.status(404).json({ error: 'Media not found' });
   }
 
-  // Attempt to delete physical file safely inside uploads directory
-  const uploadsRoot = path.resolve(process.cwd(), 'uploads');
-  const relativePath = String(item.file_path || '').replace(/^\/+/, '');
-  const fullPath = path.resolve(process.cwd(), relativePath);
+  // Attempt to delete physical file safely inside UPLOAD_DIR
+  const uploadsRoot = path.resolve(UPLOAD_DIR);
+  const rawWebPath = String(item.file_path || '').replace(/^\/+/, '');
+  const relativeFromUpload = rawWebPath.startsWith('uploads/')
+    ? rawWebPath.slice('uploads/'.length)
+    : rawWebPath;
+  const fullPath = path.resolve(uploadsRoot, relativeFromUpload);
   if (fullPath.startsWith(uploadsRoot + path.sep) && fs.existsSync(fullPath)) {
     try {
       fs.unlinkSync(fullPath);
