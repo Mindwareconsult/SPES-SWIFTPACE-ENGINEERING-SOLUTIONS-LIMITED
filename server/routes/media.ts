@@ -9,7 +9,7 @@ const router = Router();
 
 const mediaStorage = multer.diskStorage({
   destination: (req, _file, cb) => {
-    const category = (req.body.category as string) || 'general';
+    const category = ((req.body.category as string) || 'general').toLowerCase();
     const sub = ['projects', 'blog', 'media'].includes(category) ? category : 'media';
     const dir = path.join(process.cwd(), 'uploads', sub);
     if (!fs.existsSync(dir)) {
@@ -62,7 +62,7 @@ router.post('/admin/upload', authenticateAdmin, uploadMedia.array('files', 10), 
     }
 
     const category = (req.body.category as string) || 'general';
-    const sub = ['projects', 'blog', 'media'].includes(category) ? category : 'media';
+    const sub = ['projects', 'blog', 'media'].includes(category.toLowerCase()) ? category.toLowerCase() : 'media';
     const insert = db.prepare(`
       INSERT INTO media (filename, file_path, file_type, file_size, category)
       VALUES (?, ?, ?, ?, ?)
@@ -94,9 +94,11 @@ router.delete('/admin/:id', authenticateAdmin, (req, res) => {
     return res.status(404).json({ error: 'Media not found' });
   }
 
-  // Attempt to delete physical file
-  const fullPath = path.join(process.cwd(), item.file_path);
-  if (fs.existsSync(fullPath)) {
+  // Attempt to delete physical file safely inside uploads directory
+  const uploadsRoot = path.resolve(process.cwd(), 'uploads');
+  const relativePath = String(item.file_path || '').replace(/^\/+/, '');
+  const fullPath = path.resolve(process.cwd(), relativePath);
+  if (fullPath.startsWith(uploadsRoot + path.sep) && fs.existsSync(fullPath)) {
     try {
       fs.unlinkSync(fullPath);
     } catch {

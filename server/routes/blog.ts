@@ -67,7 +67,7 @@ router.get('/', (req, res) => {
 // PUBLIC: GET /api/blog/:slug
 router.get('/:slug', (req, res) => {
   const { slug } = req.params;
-  const post = db.prepare('SELECT * FROM blog_posts WHERE slug = ?').get(slug) as any;
+  const post = db.prepare("SELECT * FROM blog_posts WHERE slug = ? AND publication_status = 'published'").get(slug) as any;
 
   if (!post) {
     return res.status(404).json({ error: 'Article not found' });

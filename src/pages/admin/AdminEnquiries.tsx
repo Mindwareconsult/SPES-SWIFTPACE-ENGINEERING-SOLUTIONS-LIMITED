@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Enquiry } from '../../types';
+import { authFetch } from '../../utils/authFetch';
 import { 
   Inbox, 
   Search, 
@@ -45,8 +46,11 @@ export const AdminEnquiries: React.FC = () => {
     if (filterService !== 'All') params.set('service', filterService);
     if (searchTerm) params.set('search', searchTerm);
 
-    fetch(`/api/enquiries/admin?${params.toString()}`)
-      .then((res) => res.json())
+    authFetch(`/api/enquiries/admin?${params.toString()}`)
+      .then((res) => {
+        if (!res.ok) throw new Error('Failed to fetch enquiries');
+        return res.json();
+      })
       .then((data) => {
         setEnquiries(data.enquiries || []);
         setLoading(false);
@@ -68,7 +72,7 @@ export const AdminEnquiries: React.FC = () => {
     if (!selectedEnquiry) return;
     setUpdating(true);
     try {
-      const res = await fetch(`/api/enquiries/admin/${selectedEnquiry.id}`, {
+      const res = await authFetch(`/api/enquiries/admin/${selectedEnquiry.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -90,7 +94,8 @@ export const AdminEnquiries: React.FC = () => {
   const handleDelete = async (id: number) => {
     if (!window.confirm('Are you sure you want to delete this enquiry record?')) return;
     try {
-      await fetch(`/api/enquiries/admin/${id}`, { method: 'DELETE' });
+      const res = await authFetch(`/api/enquiries/admin/${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Delete failed');
       if (selectedEnquiry?.id === id) setSelectedEnquiry(null);
       fetchEnquiries();
     } catch {
@@ -98,8 +103,40 @@ export const AdminEnquiries: React.FC = () => {
     }
   };
 
-  const handleExportCsv = () => {
-    window.open('/api/enquiries/admin/export/csv', '_blank');
+  const handleExportCsv = async () => {
+    try {
+      const res = await authFetch('/api/enquiries/admin/export/csv');
+      if (!res.ok) throw new Error('Export failed');
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'SPES_Swiftpace_Enquiries.csv';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch {
+      alert('Failed to export enquiries CSV.');
+    }
+  };
+
+  const handleDownloadAttachment = async (attachmentPath: string) => {
+    try {
+      const res = await authFetch(attachmentPath);
+      if (!res.ok) throw new Error('Download failed');
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = attachmentPath.split('/').pop() || 'enquiry-attachment';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch {
+      alert('Failed to download attachment.');
+    }
   };
 
   return (
@@ -322,14 +359,13 @@ export const AdminEnquiries: React.FC = () => {
                   <FileText className="w-4 h-4 text-[#12BCEB]" />
                   <span className="text-slate-200 font-medium">Uploaded Blueprint / Drawing Package</span>
                 </div>
-                <a
-                  href={selectedEnquiry.attachment_path}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-3 py-1 rounded bg-[#12BCEB] text-[#06152F] font-bold text-[11px]"
+                <button
+                  type="button"
+                  onClick={() => handleDownloadAttachment(selectedEnquiry.attachment_path!)}
+                  className="px-3 py-1 rounded bg-[#12BCEB] text-[#06152F] font-bold text-[11px] cursor-pointer"
                 >
                   Download File
-                </a>
+                </button>
               </div>
             )}
 

@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Settings, Lock, CheckCircle2, AlertCircle, Save } from 'lucide-react';
+import { authFetch } from '../../utils/authFetch';
+import { useAuth } from '../../context/AuthContext';
 
 export const AdminSettings: React.FC = () => {
+  const { updateSessionToken, refreshSession } = useAuth();
   const [settings, setSettings] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [settingsError, setSettingsError] = useState<string | null>(null);
   const [savingSettings, setSavingSettings] = useState(false);
 
   // Password change state
@@ -32,9 +36,10 @@ export const AdminSettings: React.FC = () => {
     e.preventDefault();
     setSavingSettings(true);
     setSaveSuccess(false);
+    setSettingsError(null);
 
     try {
-      const res = await fetch('/api/settings/admin', {
+      const res = await authFetch('/api/settings/admin', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(settings)
@@ -43,7 +48,7 @@ export const AdminSettings: React.FC = () => {
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 3000);
     } catch {
-      alert('Failed to save settings.');
+      setSettingsError('Failed to save settings. Please try again.');
     } finally {
       setSavingSettings(false);
     }
@@ -65,7 +70,7 @@ export const AdminSettings: React.FC = () => {
 
     setUpdatingPassword(true);
     try {
-      const res = await fetch('/api/admin/change-password', {
+      const res = await authFetch('/api/admin/change-password', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ currentPassword, newPassword })
@@ -75,6 +80,11 @@ export const AdminSettings: React.FC = () => {
       if (!res.ok) {
         throw new Error(data.error || 'Password update failed.');
       }
+
+      if (data.token && data.expiresAt) {
+        await updateSessionToken(data.token, data.expiresAt);
+      }
+      await refreshSession();
 
       setPasswordMsg({ type: 'success', text: 'Administrator password updated successfully.' });
       setCurrentPassword('');
@@ -118,6 +128,11 @@ export const AdminSettings: React.FC = () => {
           {saveSuccess && (
             <span className="text-xs text-emerald-400 flex items-center gap-1 font-semibold">
               <CheckCircle2 className="w-4 h-4" /> Settings Saved!
+            </span>
+          )}
+          {settingsError && (
+            <span className="text-xs text-red-400 flex items-center gap-1 font-semibold">
+              <AlertCircle className="w-4 h-4" /> {settingsError}
             </span>
           )}
         </div>
@@ -270,7 +285,7 @@ export const AdminSettings: React.FC = () => {
       </div>
 
       {/* Security & Password Change */}
-      <div className="p-8 rounded-2xl bg-[#06152F] border border-white/10 space-y-6 shadow-xl">
+      <div id="security" className="p-8 rounded-2xl bg-[#06152F] border border-white/10 space-y-6 shadow-xl">
         <div className="flex items-center gap-2 border-b border-white/10 pb-4">
           <Lock className="w-5 h-5 text-emerald-400" />
           <h3 className="font-bold text-sm text-white">Administrator Password Security</h3>

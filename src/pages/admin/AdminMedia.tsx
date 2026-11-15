@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { MediaItem } from '../../types';
+import { authFetch } from '../../utils/authFetch';
 import { Upload, Trash2, Copy, Check, Filter } from 'lucide-react';
 
 export const AdminMedia: React.FC = () => {
@@ -26,8 +27,11 @@ export const AdminMedia: React.FC = () => {
   const fetchMedia = () => {
     setLoading(true);
     const query = activeFilter === 'All' ? '' : `?category=${encodeURIComponent(activeFilter)}`;
-    fetch(`/api/media/admin${query}`)
-      .then((res) => res.json())
+    authFetch(`/api/media/admin${query}`)
+      .then((res) => {
+        if (!res.ok) throw new Error('Failed to load media');
+        return res.json();
+      })
       .then((data) => {
         setMedia(data.media || []);
         setLoading(false);
@@ -50,7 +54,7 @@ export const AdminMedia: React.FC = () => {
     });
 
     try {
-      const res = await fetch('/api/media/admin/upload', {
+      const res = await authFetch('/api/media/admin/upload', {
         method: 'POST',
         body: formData
       });
@@ -67,7 +71,8 @@ export const AdminMedia: React.FC = () => {
   const handleDelete = async (id: number) => {
     if (!window.confirm('Delete this media item?')) return;
     try {
-      await fetch(`/api/media/admin/${id}`, { method: 'DELETE' });
+      const res = await authFetch(`/api/media/admin/${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Delete failed');
       fetchMedia();
     } catch {
       alert('Delete failed');

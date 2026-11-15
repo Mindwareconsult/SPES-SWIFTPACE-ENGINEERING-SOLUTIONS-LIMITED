@@ -7,7 +7,14 @@ export const servicesData: ServiceDetailItem[] = [
     slug: 'architecture',
     iconName: 'Compass',
     shortDesc: 'Architectural planning and design support for functional, considered and context-appropriate built environments.',
-    heroImage: '/assets/projects/curvilinear-mixed-use/curvilinear-mixed-use-01.jpg',
+    heroImage: '/uploads/projects/architectural-facade-concepts/arch-terraced-streetscape-01.jpg',
+    relatedCategory: 'Architecture',
+    galleryImages: [
+      { src: '/uploads/projects/architectural-facade-concepts/arch-terraced-streetscape-01.jpg', alt: 'Contemporary terraced residential architectural streetscape design' },
+      { src: '/assets/projects/curvilinear-mixed-use/curvilinear-mixed-use-01.jpg', alt: '4-storey curvilinear mixed-use building facade' },
+      { src: '/uploads/projects/interior-architecture-joinery/interior-primary-bedroom-suite-08.jpg', alt: 'Residential interior architecture with coffered cove ceiling lighting' },
+      { src: '/uploads/projects/architectural-facade-concepts/arch-modernist-townhouse-02.jpg', alt: 'Minimalist townhouse exterior with vertical louvers and glazing' }
+    ],
     detailedOverview: 'SPES Swiftpace Engineering Solutions Limited provides architectural planning and design support focused on functional, considered and context-appropriate built environments. Our design methodology unites spatial ergonomics, bioclimatic climate responsiveness, and cutting-edge 3D modeling with direct structural buildability to produce enduring built environments across commercial, civic, and residential sectors.',
     capabilities: [
       'Architectural planning and creative master planning',
@@ -44,7 +51,14 @@ export const servicesData: ServiceDetailItem[] = [
     slug: 'building-construction',
     iconName: 'Building2',
     shortDesc: 'Building construction services focused on translating project requirements and design intent into built works.',
-    heroImage: '/assets/projects/contemporary-duplex-villa/contemporary-duplex-villa-01.jpg',
+    heroImage: '/uploads/projects/contemporary-terraced-residential/terraced-residential-courtyard-01.jpg',
+    relatedCategory: 'Building Construction',
+    galleryImages: [
+      { src: '/uploads/projects/contemporary-terraced-residential/terraced-residential-courtyard-01.jpg', alt: 'Completed white and charcoal multi-unit terraced residential development with paved courtyard' },
+      { src: '/assets/projects/contemporary-duplex-villa/contemporary-duplex-villa-01.jpg', alt: 'Contemporary 2-storey residential duplex construction' },
+      { src: '/assets/projects/multilevel-concrete-frame/multilevel-concrete-frame-03.jpg', alt: 'Multi-level reinforced concrete framed building under construction' },
+      { src: '/uploads/projects/ijebu-ode-substructure-foundation/ijebu-ode-foundation-blockwork-08.jpg', alt: 'Substructure sandcrete blockwork rising around concrete starter columns in Ijebu Ode' }
+    ],
     detailedOverview: 'SPES Swiftpace Engineering Solutions Limited provides building construction services dedicated to translating project requirements and design intent into high-quality built works. Operating from Ado Ekiti, Ekiti State, we provide ground-up construction management, substructure foundations, reinforced concrete frames, masonry infills, roofing systems, and turnkey finishes.',
     capabilities: [
       'Residential building construction (bespoke homes, luxury duplexes, gated estates)',
@@ -80,7 +94,14 @@ export const servicesData: ServiceDetailItem[] = [
     slug: 'civil-structural-engineering',
     iconName: 'Boxes',
     shortDesc: 'Civil and structural engineering input supporting the planning, design and delivery of safe and functional infrastructure and building elements.',
-    heroImage: '/assets/projects/commercial-column-shoring/commercial-column-shoring-01.jpg',
+    heroImage: '/uploads/projects/ijebu-ode-substructure-foundation/ijebu-ode-foundation-overview-01.jpg',
+    relatedCategory: 'Civil & Structural Engineering',
+    galleryImages: [
+      { src: '/uploads/projects/ijebu-ode-substructure-foundation/ijebu-ode-foundation-overview-01.jpg', alt: 'Wide site view of foundation blockwork grid and column positions in Ijebu Ode, Ogun State' },
+      { src: '/uploads/projects/ijebu-ode-substructure-foundation/ijebu-ode-cast-pad-footing-03.jpg', alt: 'Cast reinforced concrete pad footing and column starter rebar cage in Ijebu Ode' },
+      { src: '/assets/projects/commercial-column-shoring/commercial-column-shoring-01.jpg', alt: 'Multi-storey commercial reinforced concrete column formwork and shoring' },
+      { src: '/uploads/projects/ijebu-ode-substructure-foundation/ijebu-ode-spes-team-rebar-02.jpg', alt: 'SPES engineering team member tying pad footing reinforcement cage in Ijebu Ode' }
+    ],
     detailedOverview: 'SPES Swiftpace provides civil and structural engineering input supporting the planning, design and delivery of safe, functional infrastructure and durable building elements. We deploy advanced structural modeling and soil mechanics calculations to ensure every foundation, column, beam, suspended slab, and retaining structure is engineered for maximum structural integrity and code fidelity.',
     capabilities: [
       'Comprehensive structural engineering design and finite element modeling',
@@ -118,6 +139,13 @@ export const servicesData: ServiceDetailItem[] = [
     iconName: 'ClipboardCheck',
     shortDesc: 'Project coordination and construction management support, with attention to planning, sequencing, resources, quality and delivery.',
     heroImage: '/assets/projects/suspended-slab-decking/suspended-slab-decking-01.jpg',
+    relatedCategory: 'Construction Management',
+    galleryImages: [
+      { src: '/assets/projects/suspended-slab-decking/suspended-slab-decking-01.jpg', alt: 'Supervisory engineers reviewing structural drawings on suspended slab deck' },
+      { src: '/uploads/projects/ijebu-ode-substructure-foundation/ijebu-ode-crew-substructure-13.jpg', alt: 'On-site supervision of substructure masonry crew wearing hi-vis safety vests' },
+      { src: '/assets/projects/suspended-slab-decking/suspended-slab-decking-08.jpg', alt: 'Pre-pour steel reinforcement verification and concrete cover checks' },
+      { src: '/uploads/projects/ijebu-ode-substructure-foundation/ijebu-ode-spes-team-rebar-02.jpg', alt: 'SPES field supervision during pad foundation steel reinforcement assembly' }
+    ],
     detailedOverview: 'SPES Swiftpace delivers construction management support centered around critical-path sequencing, site coordination, contractor accountability, and financial transparency. We act as the client’s authoritative technical representative, coordinating consultants, trade contractors, and suppliers to eliminate budget leakages and project delays.',
     capabilities: [
       'Critical Path Method (CPM) project scheduling and baseline tracking',
@@ -154,6 +182,13 @@ export const servicesData: ServiceDetailItem[] = [
     iconName: 'Briefcase',
     shortDesc: 'Professional advisory and consultancy support to help clients assess project needs, options and implementation considerations.',
     heroImage: '/assets/projects/multilevel-concrete-frame/multilevel-concrete-frame-03.jpg',
+    relatedCategory: 'Civil & Structural Engineering',
+    galleryImages: [
+      { src: '/assets/projects/multilevel-concrete-frame/multilevel-concrete-frame-03.jpg', alt: '3-storey reinforced concrete frame structural evaluation' },
+      { src: '/assets/projects/suspended-slab-decking/suspended-slab-decking-02.jpg', alt: 'Technical blueprint audit and starter bar alignment verification on site' },
+      { src: '/uploads/projects/ijebu-ode-substructure-foundation/ijebu-ode-blinded-trench-05.jpg', alt: 'Foundation trench inspection and soil bearing preparation in Ijebu Ode' },
+      { src: '/assets/projects/commercial-column-shoring/commercial-column-shoring-04.jpg', alt: 'Structural shoring and column alignment inspection' }
+    ],
     detailedOverview: 'SPES Swiftpace provides specialized engineering consultancy and professional advisory support. We help property owners, commercial enterprises, and institutional clients evaluate site suitability, analyze structural alternatives, navigate statutory physical planning frameworks, and resolve technical complexities before committing significant capital.',
     capabilities: [
       'Project feasibility studies and technical viability assessments',
@@ -189,8 +224,15 @@ export const servicesData: ServiceDetailItem[] = [
     slug: 'allied-services',
     iconName: 'Wrench',
     shortDesc: 'Related services that complement the company’s core architecture, engineering, construction and management activities.',
-    heroImage: '/assets/projects/contemporary-duplex-villa/contemporary-duplex-villa-04.jpg',
-    detailedOverview: 'To provide a truly seamless project delivery ecosystem, SPES Swiftpace Engineering Solutions Limited provides specialized allied technical services. These complementary capabilities encompass external works, drainage, site preparation, utility installations, and technical infrastructure support.',
+    heroImage: '/uploads/projects/interior-architecture-joinery/interior-living-media-wall-02.jpg',
+    relatedCategory: 'Building Construction',
+    galleryImages: [
+      { src: '/uploads/projects/interior-architecture-joinery/interior-living-media-wall-02.jpg', alt: 'Contemporary interior living suite finishing and custom joinery' },
+      { src: '/uploads/projects/interior-architecture-joinery/interior-kitchen-greige-lshape-06.jpg', alt: 'Modern fitted kitchen cabinetry and interior electrical lighting integration' },
+      { src: '/uploads/projects/contemporary-terraced-residential/terraced-residential-corner-03.jpg', alt: 'Interlocking paved external courtyard and exterior floodlight installation' },
+      { src: '/assets/projects/contemporary-duplex-villa/contemporary-duplex-villa-04.jpg', alt: 'Completed residential driveway paving and perimeter security infrastructure' }
+    ],
+    detailedOverview: 'To provide a truly seamless project delivery ecosystem, SPES Swiftpace Engineering Solutions Limited provides specialized allied technical services. These complementary capabilities encompass external works, drainage, site preparation, utility installations, interior finishing coordination, and technical infrastructure support.',
     capabilities: [
       'Site preparation, bulk earthmoving, grading, and perimeter retaining walls',
       'Interlocking concrete paving, perimeter security walls, and entrance gatehouses',

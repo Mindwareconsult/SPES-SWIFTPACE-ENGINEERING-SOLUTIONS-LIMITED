@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Project } from '../../types';
+import { authFetch } from '../../utils/authFetch';
 import { 
   Plus, 
   Trash2, 
@@ -52,8 +53,11 @@ export const AdminProjects: React.FC = () => {
 
   const fetchProjects = () => {
     setLoading(true);
-    fetch('/api/projects/admin/all')
-      .then((res) => res.json())
+    authFetch('/api/projects/admin/all')
+      .then((res) => {
+        if (!res.ok) throw new Error('Failed to load projects');
+        return res.json();
+      })
       .then((data) => {
         setProjects(data.projects || []);
         setLoading(false);
@@ -80,7 +84,7 @@ export const AdminProjects: React.FC = () => {
       scope_of_work: '',
       technical_approach: '',
       project_outcome: '',
-      cover_image: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1200&q=80',
+      cover_image: '/uploads/projects/',
       featured: 0,
       publication_status: 'published'
     });
@@ -109,12 +113,24 @@ export const AdminProjects: React.FC = () => {
     });
     setGalleryUrls('');
     setModalOpen(true);
+
+    // Fetch full project record including existing gallery images so edits preserve them
+    authFetch(`/api/projects/admin/${p.id}`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (Array.isArray(data?.images)) {
+          const urls = data.images.map((img: any) => img.image_path).filter(Boolean).join('\n');
+          setGalleryUrls(urls);
+        }
+      })
+      .catch(() => {});
   };
 
   const handleDelete = async (id: number) => {
     if (!window.confirm('Are you sure you want to delete this project?')) return;
     try {
-      await fetch(`/api/projects/admin/${id}`, { method: 'DELETE' });
+      const res = await authFetch(`/api/projects/admin/${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Failed to delete project');
       fetchProjects();
     } catch {
       alert('Failed to delete project');
@@ -124,11 +140,12 @@ export const AdminProjects: React.FC = () => {
   const handleTogglePublish = async (p: Project) => {
     const nextStatus = p.publication_status === 'published' ? 'draft' : 'published';
     try {
-      await fetch(`/api/projects/admin/${p.id}`, {
+      const res = await authFetch(`/api/projects/admin/${p.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ publication_status: nextStatus })
       });
+      if (!res.ok) throw new Error('Failed to update status');
       fetchProjects();
     } catch {
       alert('Failed to update status');
@@ -156,7 +173,7 @@ export const AdminProjects: React.FC = () => {
         : '/api/projects/admin';
       const method = editingProject ? 'PUT' : 'POST';
 
-      const res = await fetch(url, {
+      const res = await authFetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -377,7 +394,7 @@ export const AdminProjects: React.FC = () => {
               <div>
                 <label className="block font-semibold text-slate-300 mb-1">Cover Photograph URL *</label>
                 <input
-                  type="url"
+                  type="text"
                   required
                   value={formData.cover_image}
                   onChange={(e) => setFormData({ ...formData, cover_image: e.target.value })}
@@ -460,7 +477,7 @@ export const AdminProjects: React.FC = () => {
                   rows={2}
                   value={galleryUrls}
                   onChange={(e) => setGalleryUrls(e.target.value)}
-                  placeholder="https://images.unsplash.com/...&#10;/uploads/projects/..."
+                  placeholder="/uploads/projects/...&#10;/assets/projects/..."
                   className="w-full px-3.5 py-2.5 rounded-xl bg-[#081D43] border border-white/10 text-white font-mono text-[11px] focus:outline-none focus:border-[#12BCEB]"
                 />
               </div>

@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { SEOHead } from '../components/common/SEOHead';
 import { MotionReveal, StaggerContainer, StaggerItem } from '../components/common/MotionReveal';
 import { Project } from '../types';
 import { MapPin, ArrowRight } from 'lucide-react';
 
 export const Portfolio: React.FC = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [projects, setProjects] = useState<Project[]>([]);
-  const [activeCategory, setActiveCategory] = useState<string>('All Projects');
+  const [activeCategory, setActiveCategory] = useState<string>(() => searchParams.get('category') || 'All Projects');
   const [loading, setLoading] = useState<boolean>(true);
 
   const categories = [
@@ -15,10 +16,24 @@ export const Portfolio: React.FC = () => {
     'Architecture',
     'Building Construction',
     'Civil & Structural Engineering',
-    'Infrastructure',
-    'Commercial & Industrial',
     'Construction Management'
   ];
+
+  useEffect(() => {
+    const paramCat = searchParams.get('category');
+    if (paramCat && paramCat !== activeCategory) {
+      setActiveCategory(paramCat);
+    }
+  }, [searchParams]);
+
+  const handleCategoryChange = (cat: string) => {
+    setActiveCategory(cat);
+    if (cat === 'All Projects') {
+      setSearchParams({});
+    } else {
+      setSearchParams({ category: cat });
+    }
+  };
 
   useEffect(() => {
     setLoading(true);
@@ -72,8 +87,8 @@ export const Portfolio: React.FC = () => {
           {categories.map((cat) => (
             <button
               key={cat}
-              onClick={() => setActiveCategory(cat)}
-              className={`px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-200 ${
+              onClick={() => handleCategoryChange(cat)}
+              className={`px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-200 cursor-pointer ${
                 activeCategory === cat
                   ? 'bg-[#12BCEB] text-[#06152F] shadow-lg shadow-cyan-950/50'
                   : 'bg-[#081D43] text-slate-300 hover:text-white hover:bg-[#0A265A] border border-white/5'
@@ -101,7 +116,8 @@ export const Portfolio: React.FC = () => {
                   <div className="relative h-64 overflow-hidden">
                     <img
                       src={project.cover_image}
-                      alt={project.title}
+                      alt={`${project.title} — ${project.category}`}
+                      loading="lazy"
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#081D43] via-transparent to-transparent" />
@@ -154,8 +170,8 @@ export const Portfolio: React.FC = () => {
               No projects found currently under category "{activeCategory}".
             </p>
             <button
-              onClick={() => setActiveCategory('All Projects')}
-              className="text-xs text-[#12BCEB] font-semibold underline"
+              onClick={() => handleCategoryChange('All Projects')}
+              className="text-xs text-[#12BCEB] font-semibold underline cursor-pointer"
             >
               Reset to all projects
             </button>

@@ -21,15 +21,20 @@ router.get('/', (req, res) => {
   const params: any[] = ['published'];
 
   if (category && category !== 'All Projects' && category !== 'all') {
-    query += ' AND category LIKE ?';
-    params.push(`%${category}%`);
+    if (category === 'Civil Engineering' || category === 'Structural Engineering') {
+      query += " AND (category LIKE ? OR category = 'Civil & Structural Engineering')";
+      params.push(`%${category}%`);
+    } else {
+      query += ' AND category LIKE ?';
+      params.push(`%${category}%`);
+    }
   }
 
   if (featured === 'true' || featured === '1') {
     query += ' AND featured = 1';
   }
 
-  query += ' ORDER BY created_at DESC';
+  query += ' ORDER BY featured DESC, created_at DESC, id ASC';
 
   const projects = db.prepare(query).all(...params);
   return res.json({ projects });
@@ -38,7 +43,7 @@ router.get('/', (req, res) => {
 // PUBLIC: GET /api/projects/:slug
 router.get('/:slug', (req, res) => {
   const { slug } = req.params;
-  const project = db.prepare('SELECT * FROM projects WHERE slug = ?').get(slug) as any;
+  const project = db.prepare("SELECT * FROM projects WHERE slug = ? AND publication_status = 'published'").get(slug) as any;
 
   if (!project) {
     return res.status(404).json({ error: 'Project not found' });

@@ -136,6 +136,39 @@ router.get('/admin', authenticateAdmin, (req, res) => {
   return res.json({ enquiries });
 });
 
+// ADMIN: GET /api/admin/enquiries/export/csv
+router.get('/admin/export/csv', authenticateAdmin, (_req, res) => {
+  const enquiries = db.prepare('SELECT * FROM enquiries ORDER BY created_at DESC').all() as any[];
+  const safeCell = (val: unknown) => {
+    const str = String(val ?? '');
+    const neutralized = /^[=+\-@\t\r]/.test(str) ? `'${str}` : str;
+    return `"${neutralized.replace(/"/g, '""')}"`;
+  };
+
+  let csv = 'ID,Full Name,Company,Email,Phone,Service,Project Type,Location,Budget,Preferred Method,Status,Created At\n';
+  for (const e of enquiries) {
+    const row = [
+      e.id,
+      safeCell(e.full_name),
+      safeCell(e.company_name),
+      safeCell(e.email),
+      safeCell(e.phone),
+      safeCell(e.service_required),
+      safeCell(e.project_type),
+      safeCell(e.project_location),
+      safeCell(e.estimated_budget),
+      safeCell(e.preferred_contact_method),
+      safeCell(e.enquiry_status),
+      safeCell(e.created_at)
+    ];
+    csv += row.join(',') + '\n';
+  }
+
+  res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+  res.setHeader('Content-Disposition', 'attachment; filename="SPES_Swiftpace_Enquiries.csv"');
+  return res.send(csv);
+});
+
 // ADMIN: GET /api/admin/enquiries/:id
 router.get('/admin/:id', authenticateAdmin, (req, res) => {
   const enquiry = db.prepare('SELECT * FROM enquiries WHERE id = ?').get(req.params.id);
@@ -175,34 +208,6 @@ router.delete('/admin/:id', authenticateAdmin, (req, res) => {
   const { id } = req.params;
   db.prepare('DELETE FROM enquiries WHERE id = ?').run(id);
   return res.json({ success: true, message: 'Enquiry deleted successfully.' });
-});
-
-// ADMIN: GET /api/admin/enquiries/export/csv
-router.get('/admin/export/csv', authenticateAdmin, (_req, res) => {
-  const enquiries = db.prepare('SELECT * FROM enquiries ORDER BY created_at DESC').all() as any[];
-
-  let csv = 'ID,Full Name,Company,Email,Phone,Service,Project Type,Location,Budget,Preferred Method,Status,Created At\n';
-  for (const e of enquiries) {
-    const row = [
-      e.id,
-      `"${(e.full_name || '').replace(/"/g, '""')}"`,
-      `"${(e.company_name || '').replace(/"/g, '""')}"`,
-      `"${e.email || ''}"`,
-      `"${e.phone || ''}"`,
-      `"${(e.service_required || '').replace(/"/g, '""')}"`,
-      `"${(e.project_type || '').replace(/"/g, '""')}"`,
-      `"${(e.project_location || '').replace(/"/g, '""')}"`,
-      `"${(e.estimated_budget || '').replace(/"/g, '""')}"`,
-      `"${(e.preferred_contact_method || '').replace(/"/g, '""')}"`,
-      `"${e.enquiry_status || ''}"`,
-      `"${e.created_at || ''}"`
-    ];
-    csv += row.join(',') + '\n';
-  }
-
-  res.setHeader('Content-Type', 'text/csv');
-  res.setHeader('Content-Disposition', 'attachment; filename="SPES_Swiftpace_Enquiries.csv"');
-  return res.send(csv);
 });
 
 export default router;

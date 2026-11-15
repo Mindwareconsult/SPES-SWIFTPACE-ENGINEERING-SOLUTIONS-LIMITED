@@ -146,11 +146,11 @@ export const ProjectDetail: React.FC = () => {
             
             {/* Project Hero Image */}
             <MotionReveal direction="up" duration={0.7}>
-              <div className="relative rounded-2xl overflow-hidden border border-white/10 shadow-2xl group">
+              <div className="relative rounded-2xl overflow-hidden border border-white/10 shadow-2xl group bg-[#040D1E]">
                 <img
                   src={project.cover_image}
                   alt={project.title}
-                  className="w-full h-[440px] object-cover"
+                  className="w-full max-h-[540px] object-contain mx-auto"
                 />
                 {images.length > 0 && (
                   <button
@@ -283,6 +283,21 @@ export const ProjectDetail: React.FC = () => {
                   <div>
                     <div className="text-slate-400 uppercase tracking-wider text-[10px]">Project Category</div>
                     <div className="font-bold text-white mt-0.5">{project.category}</div>
+                    <Link
+                      to={
+                        project.category.toLowerCase().includes('architecture')
+                          ? '/services/architecture'
+                          : project.category.toLowerCase().includes('building')
+                          ? '/services/building-construction'
+                          : project.category.toLowerCase().includes('management')
+                          ? '/services/construction-management'
+                          : '/services/civil-structural-engineering'
+                      }
+                      className="inline-flex items-center gap-1 text-[11px] text-[#12BCEB] hover:underline mt-1"
+                    >
+                      <span>Explore {project.category} Service</span>
+                      <ArrowRight className="w-3 h-3" />
+                    </Link>
                   </div>
 
                   {project.location && (

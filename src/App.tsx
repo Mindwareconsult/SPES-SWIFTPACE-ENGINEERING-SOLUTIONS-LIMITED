@@ -19,6 +19,7 @@ import { PrivacyPolicy } from './pages/PrivacyPolicy';
 import { Terms } from './pages/Terms';
 
 // Admin Pages
+import { AuthProvider } from './context/AuthContext';
 import { AdminLogin } from './pages/admin/AdminLogin';
 import { AdminLayout } from './pages/admin/AdminLayout';
 import { AdminDashboard } from './pages/admin/AdminDashboard';
@@ -64,41 +65,43 @@ const NotFound: React.FC = () => (
 export function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        {/* Public Routes */}
-        <Route path="/" element={<PublicLayout><Home /></PublicLayout>} />
-        <Route path="/about" element={<PublicLayout><About /></PublicLayout>} />
-        <Route path="/services" element={<PublicLayout><Services /></PublicLayout>} />
-        <Route path="/services/:serviceSlug" element={<PublicLayout><ServiceDetail /></PublicLayout>} />
-        <Route path="/portfolio" element={<PublicLayout><Portfolio /></PublicLayout>} />
-        <Route path="/projects/:projectSlug" element={<PublicLayout><ProjectDetail /></PublicLayout>} />
-        <Route path="/blog" element={<PublicLayout><Blog /></PublicLayout>} />
-        <Route path="/blog/category/:categorySlug" element={<PublicLayout><Blog /></PublicLayout>} />
-        <Route path="/blog/:articleSlug" element={<PublicLayout><BlogDetail /></PublicLayout>} />
-        <Route path="/contact" element={<PublicLayout><Contact /></PublicLayout>} />
-        <Route path="/faq" element={<PublicLayout><FAQ /></PublicLayout>} />
-        <Route path="/privacy-policy" element={<PublicLayout><PrivacyPolicy /></PublicLayout>} />
-        <Route path="/terms-and-conditions" element={<PublicLayout><Terms /></PublicLayout>} />
+      <AuthProvider>
+        <Routes>
+          {/* Public Routes */}
+          <Route path="/" element={<PublicLayout><Home /></PublicLayout>} />
+          <Route path="/about" element={<PublicLayout><About /></PublicLayout>} />
+          <Route path="/services" element={<PublicLayout><Services /></PublicLayout>} />
+          <Route path="/services/:serviceSlug" element={<PublicLayout><ServiceDetail /></PublicLayout>} />
+          <Route path="/portfolio" element={<PublicLayout><Portfolio /></PublicLayout>} />
+          <Route path="/projects/:projectSlug" element={<PublicLayout><ProjectDetail /></PublicLayout>} />
+          <Route path="/blog" element={<PublicLayout><Blog /></PublicLayout>} />
+          <Route path="/blog/category/:categorySlug" element={<PublicLayout><Blog /></PublicLayout>} />
+          <Route path="/blog/:articleSlug" element={<PublicLayout><BlogDetail /></PublicLayout>} />
+          <Route path="/contact" element={<PublicLayout><Contact /></PublicLayout>} />
+          <Route path="/faq" element={<PublicLayout><FAQ /></PublicLayout>} />
+          <Route path="/privacy-policy" element={<PublicLayout><PrivacyPolicy /></PublicLayout>} />
+          <Route path="/terms-and-conditions" element={<PublicLayout><Terms /></PublicLayout>} />
 
-        {/* Admin Authentication */}
-        <Route path="/admin/login" element={<AdminLogin />} />
-        <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
+          {/* Admin Authentication */}
+          <Route path="/admin/login" element={<AdminLogin />} />
+          <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
 
-        {/* Protected Admin Routes */}
-        <Route path="/admin" element={<AdminLayout />}>
-          <Route path="dashboard" element={<AdminDashboard />} />
-          <Route path="projects" element={<AdminProjects />} />
-          <Route path="projects/new" element={<AdminProjects />} />
-          <Route path="blog" element={<AdminBlog />} />
-          <Route path="blog/new" element={<AdminBlog />} />
-          <Route path="enquiries" element={<AdminEnquiries />} />
-          <Route path="media" element={<AdminMedia />} />
-          <Route path="settings" element={<AdminSettings />} />
-        </Route>
+          {/* Protected Admin Routes */}
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route path="dashboard" element={<AdminDashboard />} />
+            <Route path="projects" element={<AdminProjects />} />
+            <Route path="projects/new" element={<AdminProjects />} />
+            <Route path="blog" element={<AdminBlog />} />
+            <Route path="blog/new" element={<AdminBlog />} />
+            <Route path="enquiries" element={<AdminEnquiries />} />
+            <Route path="media" element={<AdminMedia />} />
+            <Route path="settings" element={<AdminSettings />} />
+          </Route>
 
-        {/* Catch-all 404 */}
-        <Route path="*" element={<PublicLayout><NotFound /></PublicLayout>} />
-      </Routes>
+          {/* Catch-all 404 */}
+          <Route path="*" element={<PublicLayout><NotFound /></PublicLayout>} />
+        </Routes>
+      </AuthProvider>
     </BrowserRouter>
   );
 }

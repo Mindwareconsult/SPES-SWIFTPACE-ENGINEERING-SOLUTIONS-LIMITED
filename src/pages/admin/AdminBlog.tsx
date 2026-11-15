@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BlogPost, BlogCategory } from '../../types';
+import { authFetch } from '../../utils/authFetch';
 import { 
   Plus, 
   Trash2, 
@@ -35,8 +36,11 @@ export const AdminBlog: React.FC = () => {
 
   const fetchPosts = () => {
     setLoading(true);
-    fetch('/api/blog/admin/all')
-      .then((res) => res.json())
+    authFetch('/api/blog/admin/all')
+      .then((res) => {
+        if (!res.ok) throw new Error('Failed to fetch posts');
+        return res.json();
+      })
       .then((data) => {
         setPosts(data.posts || []);
         setLoading(false);
@@ -61,7 +65,7 @@ export const AdminBlog: React.FC = () => {
       category_name: categories[0]?.name || 'Structural Engineering',
       excerpt: '',
       content: `## Engineering Context\n\nProvide technical analysis and professional engineering perspective here...\n\n### Key Considerations\n\n- Technical parameter 1\n- Parameter 2\n- Code compliance note`,
-      featured_image: 'https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=1200&q=80',
+      featured_image: '/uploads/projects/ijebu-ode-substructure-foundation/ijebu-ode-foundation-overview-01.jpg',
       author: 'SPES Engineering Directorate',
       publication_status: 'published',
       seo_title: '',
@@ -89,7 +93,8 @@ export const AdminBlog: React.FC = () => {
   const handleDelete = async (id: number) => {
     if (!window.confirm('Are you sure you want to delete this article?')) return;
     try {
-      await fetch(`/api/blog/admin/${id}`, { method: 'DELETE' });
+      const res = await authFetch(`/api/blog/admin/${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Delete failed');
       fetchPosts();
     } catch {
       alert('Failed to delete post');
@@ -99,11 +104,12 @@ export const AdminBlog: React.FC = () => {
   const handleTogglePublish = async (post: BlogPost) => {
     const nextStatus = post.publication_status === 'published' ? 'draft' : 'published';
     try {
-      await fetch(`/api/blog/admin/${post.id}`, {
+      const res = await authFetch(`/api/blog/admin/${post.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ publication_status: nextStatus })
       });
+      if (!res.ok) throw new Error('Update failed');
       fetchPosts();
     } catch {
       alert('Failed to update publication status');
@@ -118,7 +124,7 @@ export const AdminBlog: React.FC = () => {
       const url = editingPost ? `/api/blog/admin/${editingPost.id}` : '/api/blog/admin';
       const method = editingPost ? 'PUT' : 'POST';
 
-      const res = await fetch(url, {
+      const res = await authFetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
@@ -307,7 +313,7 @@ export const AdminBlog: React.FC = () => {
               <div>
                 <label className="block font-semibold text-slate-300 mb-1">Featured Photograph URL *</label>
                 <input
-                  type="url"
+                  type="text"
                   required
                   value={formData.featured_image}
                   onChange={(e) => setFormData({ ...formData, featured_image: e.target.value })}

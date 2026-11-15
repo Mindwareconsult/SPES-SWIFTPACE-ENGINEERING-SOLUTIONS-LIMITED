@@ -45,7 +45,7 @@ export const About: React.FC = () => {
       slug: '/services/architecture',
       desc: 'Architectural planning and design support for functional, considered and context-appropriate built environments.',
       icon: Compass,
-      image: '/assets/projects/curvilinear-mixed-use/curvilinear-mixed-use-01.jpg'
+      image: '/uploads/projects/architectural-facade-concepts/arch-terraced-streetscape-01.jpg'
     },
     {
       id: 'building-construction',
@@ -53,7 +53,7 @@ export const About: React.FC = () => {
       slug: '/services/building-construction',
       desc: 'Building construction services focused on translating project requirements and design intent into built works.',
       icon: Building2,
-      image: '/assets/projects/contemporary-duplex-villa/contemporary-duplex-villa-01.jpg'
+      image: '/uploads/projects/contemporary-terraced-residential/terraced-residential-courtyard-01.jpg'
     },
     {
       id: 'civil-structural-engineering',
@@ -61,7 +61,7 @@ export const About: React.FC = () => {
       slug: '/services/civil-structural-engineering',
       desc: 'Civil and structural engineering input supporting the planning, design and delivery of safe and functional infrastructure and building elements.',
       icon: Boxes,
-      image: '/assets/projects/commercial-column-shoring/commercial-column-shoring-01.jpg'
+      image: '/uploads/projects/ijebu-ode-substructure-foundation/ijebu-ode-foundation-overview-01.jpg'
     },
     {
       id: 'construction-management',
@@ -85,7 +85,7 @@ export const About: React.FC = () => {
       slug: '/services/allied-services',
       desc: 'Related services that complement the company’s core architecture, engineering, construction and management activities.',
       icon: Wrench,
-      image: '/assets/projects/contemporary-duplex-villa/contemporary-duplex-villa-04.jpg'
+      image: '/uploads/projects/interior-architecture-joinery/interior-living-media-wall-02.jpg'
     }
   ];
 
@@ -196,12 +196,13 @@ export const About: React.FC = () => {
             <div className="space-y-4">
               <div className="h-56 rounded-2xl overflow-hidden border border-white/10 group shadow-xl bg-[#040D1E] relative">
                 <img
-                  src="/assets/projects/commercial-column-shoring/commercial-column-shoring-01.jpg"
-                  alt="Multi-storey commercial column formwork and shoring"
+                  src="/uploads/projects/ijebu-ode-substructure-foundation/ijebu-ode-spes-team-rebar-02.jpg"
+                  alt="SPES field operative tying pad footing reinforcement in Ijebu Ode"
+                  loading="lazy"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-3">
-                  <span className="text-[10px] font-mono text-white">Column Shoring · South-West Nigeria</span>
+                  <span className="text-[10px] font-mono text-white">Pad Footing Works · Ijebu Ode</span>
                 </div>
               </div>
 
@@ -209,6 +210,7 @@ export const About: React.FC = () => {
                 <img
                   src="/assets/projects/suspended-slab-decking/suspended-slab-decking-01.jpg"
                   alt="Supervisory engineers inspecting structural drawings on slab deck"
+                  loading="lazy"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-3">
@@ -222,6 +224,7 @@ export const About: React.FC = () => {
                 <img
                   src="/assets/projects/curvilinear-mixed-use/curvilinear-mixed-use-01.jpg"
                   alt="Curvilinear 4-storey mixed use architectural building"
+                  loading="lazy"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-3">
@@ -231,12 +234,13 @@ export const About: React.FC = () => {
 
               <div className="h-56 rounded-2xl overflow-hidden border border-white/10 group shadow-xl bg-[#040D1E] relative">
                 <img
-                  src="/assets/projects/contemporary-duplex-villa/contemporary-duplex-villa-01.jpg"
-                  alt="Completed 2-storey contemporary residential duplex"
+                  src="/uploads/projects/contemporary-terraced-residential/terraced-residential-courtyard-01.jpg"
+                  alt="Contemporary multi-unit terraced residential development"
+                  loading="lazy"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-3">
-                  <span className="text-[10px] font-mono text-white">Completed Duplex Villa · Turnkey</span>
+                  <span className="text-[10px] font-mono text-white">Terraced Residential Envelope</span>
                 </div>
               </div>
             </div>

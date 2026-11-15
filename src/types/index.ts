@@ -109,6 +109,8 @@ export interface ServiceDetailItem {
   slug: string;
   shortDesc: string;
   heroImage: string;
+  relatedCategory?: string;
+  galleryImages?: { src: string; alt: string }[];
   detailedOverview: string;
   capabilities: string[];
   clientBenefits: { title: string; desc: string }[];

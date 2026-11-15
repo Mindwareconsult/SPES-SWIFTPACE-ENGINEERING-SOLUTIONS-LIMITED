@@ -31,9 +31,19 @@ export function initDatabase() {
       username TEXT UNIQUE NOT NULL,
       email TEXT UNIQUE NOT NULL,
       password_hash TEXT NOT NULL,
+      must_change_password INTEGER DEFAULT 0,
+      token_version INTEGER DEFAULT 1,
+      failed_attempts INTEGER DEFAULT 0,
+      locked_until DATETIME,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       last_login DATETIME
+    );
+
+    CREATE TABLE IF NOT EXISTS revoked_tokens (
+      jti TEXT PRIMARY KEY,
+      expires_at INTEGER NOT NULL,
+      revoked_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
 
     CREATE TABLE IF NOT EXISTS projects (
@@ -134,15 +144,47 @@ export function initDatabase() {
     );
   `);
 
-  // Seed default admin if none exists
+  // Safe non-destructive schema migration for existing admins table
+  const adminCols = db.prepare(`PRAGMA table_info(admins)`).all() as Array<{ name: string }>;
+  const existingColNames = new Set(adminCols.map((c) => c.name));
+  let migratedMustChange = false;
+
+  if (!existingColNames.has('must_change_password')) {
+    db.exec(`ALTER TABLE admins ADD COLUMN must_change_password INTEGER DEFAULT 0`);
+    migratedMustChange = true;
+  }
+  if (!existingColNames.has('token_version')) {
+    db.exec(`ALTER TABLE admins ADD COLUMN token_version INTEGER DEFAULT 1`);
+  }
+  if (!existingColNames.has('failed_attempts')) {
+    db.exec(`ALTER TABLE admins ADD COLUMN failed_attempts INTEGER DEFAULT 0`);
+  }
+  if (!existingColNames.has('locked_until')) {
+    db.exec(`ALTER TABLE admins ADD COLUMN locked_until DATETIME`);
+  }
+
+  // Cleanup expired revoked tokens periodically at startup
+  const nowSec = Math.floor(Date.now() / 1000);
+  db.prepare(`DELETE FROM revoked_tokens WHERE expires_at < ?`).run(nowSec);
+
+  // Seed initial administrator ONLY if no admin exists (never overwrite existing admin)
   const adminCheck = db.prepare('SELECT COUNT(*) as count FROM admins').get() as { count: number };
   if (adminCheck.count === 0) {
-    const salt = bcrypt.genSaltSync(10);
-    const hash = bcrypt.hashSync('AdminSecure2026!', salt);
+    const initialPassword = process.env.ADMIN_INITIAL_PASSWORD || 'AdminSecure2026!';
+    const salt = bcrypt.genSaltSync(12);
+    const hash = bcrypt.hashSync(initialPassword, salt);
     db.prepare(`
-      INSERT INTO admins (username, email, password_hash)
-      VALUES (?, ?, ?)
+      INSERT INTO admins (username, email, password_hash, must_change_password, token_version)
+      VALUES (?, ?, ?, 1, 1)
     `).run('spesadmin', 'spesengineeringlimited@gmail.com', hash);
+  } else if (migratedMustChange) {
+    // If existing account still uses the legacy initial password, flag must_change_password = 1
+    const existingAdmin = db.prepare('SELECT id, password_hash FROM admins ORDER BY id ASC LIMIT 1').get() as
+      | { id: number; password_hash: string }
+      | undefined;
+    if (existingAdmin && bcrypt.compareSync('AdminSecure2026!', existingAdmin.password_hash)) {
+      db.prepare('UPDATE admins SET must_change_password = 1 WHERE id = ?').run(existingAdmin.id);
+    }
   }
 
   // Seed default settings
@@ -192,108 +234,7 @@ export function initDatabase() {
     insertCategory.run(cat.name, cat.slug, cat.description);
   }
 
-  // Seed sample initial verified projects (clearly marked as engineering showcase studies)
-  const projectCheck = db.prepare('SELECT COUNT(*) as count FROM projects').get() as { count: number };
-  if (projectCheck.count === 0) {
-    const seedProjects = [
-      {
-        title: 'Metropolitan Commercial Complex & Trade Tower',
-        slug: 'metropolitan-commercial-complex',
-        category: 'Commercial & Industrial',
-        location: 'Ado Ekiti, Ekiti State',
-        client: 'Confidential Corporate Client',
-        project_status: 'Completed',
-        completion_date: 'November 2025',
-        short_description: 'Multi-level commercial development featuring integrated structural engineering, high-efficiency concrete frame, and modern curtain-wall facade.',
-        overview: 'A flagship modern commercial center designed to accommodate corporate headquarters, retail banking branches, and high-density administrative spaces with dedicated underground water retention and heavy-duty structural load balancing.',
-        objectives: 'Create a state-of-the-art commercial hub with maximum floor plan flexibility, high acoustic isolation between retail and office spaces, and energy-conscious thermal envelope design.',
-        scope_of_work: 'Comprehensive structural analysis, foundation stabilization on challenging clay-soil stratum, reinforced concrete superstructure coordination, and construction supervision.',
-        technical_approach: 'Utilized deep-drilled cast-in-situ reinforced piles with rigid raft foundation beam matrix. Implemented Grade 40 concrete mix designs with rigorous slump and cube testing protocols on site.',
-        project_outcome: 'Delivered on schedule with zero structural defects, setting a regional benchmark for commercial architectural elegance and structural safety.',
-        cover_image: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1400&q=80',
-        featured: 1,
-        publication_status: 'published',
-        seo_title: 'Metropolitan Commercial Complex | SPES Swiftpace Engineering',
-        meta_description: 'Engineering and construction case study of Metropolitan Commercial Complex in Ekiti State by SPES Swiftpace.'
-      },
-      {
-        title: 'Toluwani Civic Infrastructure & Drainage Works',
-        slug: 'toluwani-civic-infrastructure',
-        category: 'Civil & Structural Engineering',
-        location: 'Off Iworoko Road, Ado Ekiti',
-        client: 'Regional Infrastructure Consortium',
-        project_status: 'Completed',
-        completion_date: 'August 2025',
-        short_description: 'Heavy civil works including reinforced concrete hydraulic culverts, storm runoff channels, and stabilized road foundation alignment.',
-        overview: 'Engineering design and civil construction of flood-mitigation storm water canals, culvert transitions, and pavement substructure designed to withstand intense seasonal monsoon rainfall and soil erosion.',
-        objectives: 'Eliminate chronic flash flooding, stabilize soil retaining walls along natural gradients, and construct long-lasting civil transport access.',
-        scope_of_work: 'Hydrological watershed modeling, trapezoidal channel reinforcement, pre-cast and cast-in-place culverts, and structural embankment stabilization.',
-        technical_approach: 'Hydraulic flow simulations combined with sulfate-resistant Portland cement mixtures in critical drainage conduits to prevent aggregate wear and chemical leaching.',
-        project_outcome: 'Successfully contained peak wet-season storm discharges and restored reliable all-weather vehicular connectivity across the civic corridor.',
-        cover_image: 'https://images.unsplash.com/photo-1541888946425-d0fbb186c5f7?auto=format&fit=crop&w=1400&q=80',
-        featured: 1,
-        publication_status: 'published',
-        seo_title: 'Toluwani Civic Infrastructure & Drainage | SPES Engineering',
-        meta_description: 'Civil engineering and hydraulic storm water drainage solutions in Ado Ekiti executed by SPES Swiftpace.'
-      },
-      {
-        title: 'Skyline Business Executive Tower',
-        slug: 'skyline-business-executive-tower',
-        category: 'Architecture',
-        location: 'Commercial Corridor, Ekiti State',
-        client: 'Private Investment Group',
-        project_status: 'Completed',
-        completion_date: 'January 2026',
-        short_description: 'Sleek architectural design integrating cantilevered solar shading, open-span interior workspaces, and smart building management systems.',
-        overview: 'A landmark multi-storey corporate tower conceived to harmonize bioclimatic architectural principles with bold geometric forms, maximizing natural daylight while deflecting harsh tropical solar radiation.',
-        objectives: 'Achieve high occupant thermal comfort, low operational cooling loads, and an inspiring civic architectural identity for leading professional enterprises.',
-        scope_of_work: 'Architectural space programming, 3D visualization, detailed construction drawings, building envelope thermal optimization, and interior spatial layout.',
-        technical_approach: 'Integrated double-glazed low-emissivity glass assemblies with exterior architectural aluminum louvers angled specifically to intercept peak midday solar angles.',
-        project_outcome: 'Reduced predicted HVAC energy consumption by 24% while providing unobstructed panoramic city views and premium grade corporate offices.',
-        cover_image: 'https://images.unsplash.com/photo-1479839672679-a46483c0e7c8?auto=format&fit=crop&w=1400&q=80',
-        featured: 1,
-        publication_status: 'published',
-        seo_title: 'Skyline Business Tower Architecture | SPES Swiftpace',
-        meta_description: 'Architectural design and planning for the Skyline Business Executive Tower in Ekiti State by SPES Swiftpace.'
-      },
-      {
-        title: 'Riverfront Civic Logistics & Multi-Span Bridge',
-        slug: 'riverfront-civic-logistics-bridge',
-        category: 'Infrastructure',
-        location: 'South-West Nigeria Transit Route',
-        client: 'Transport Infrastructure Authority',
-        project_status: 'Completed',
-        completion_date: 'May 2025',
-        short_description: 'Prestressed concrete girder bridge and heavy-duty approach roads engineered for industrial freight and severe axle loading.',
-        overview: 'A major infrastructure crossing facilitating regional trade and logistics, designed with seismic considerations, scouring protection piers, and high-tensile steel reinforcements.',
-        objectives: 'Provide continuous freight transit capability, expand arterial traffic volume, and resist hydraulic scouring during peak river crests.',
-        scope_of_work: 'Geotechnical soil bore testing, pier foundation design, prestressed beam casting and launching, deck waterproofing, and dynamic load testing.',
-        technical_approach: 'Engineered post-tensioned tendon anchorages with continuous span monitoring strain gauges and elastomeric bearing pads.',
-        project_outcome: 'Expanded freight throughput capacity by 180% with an engineered service lifespan exceeding 75 years.',
-        cover_image: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=1400&q=80',
-        featured: 1,
-        publication_status: 'published',
-        seo_title: 'Riverfront Logistics Bridge Infrastructure | SPES Swiftpace',
-        meta_description: 'Heavy civil infrastructure and prestressed concrete bridge engineering by SPES Swiftpace Engineering.'
-      }
-    ];
-
-    const insertProject = db.prepare(`
-      INSERT INTO projects (
-        title, slug, category, location, client, project_status, completion_date,
-        short_description, overview, objectives, scope_of_work, technical_approach,
-        project_outcome, cover_image, featured, publication_status, seo_title, meta_description
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `);
-
-    for (const p of seedProjects) {
-      insertProject.run(
-        p.title, p.slug, p.category, p.location, p.client, p.project_status, p.completion_date,
-        p.short_description, p.overview, p.objectives, p.scope_of_work, p.technical_approach,
-        p.project_outcome, p.cover_image, p.featured, p.publication_status, p.seo_title, p.meta_description
-      );
-    }
-  }
+  // Authentic projects and media assets are synced via ensureAuthenticProjectsAndMedia() at server startup.
 
   // Seed initial professional blog articles
   const blogCheck = db.prepare('SELECT COUNT(*) as count FROM blog_posts').get() as { count: number };
@@ -324,7 +265,7 @@ Beyond dead and live floor loads, multi-storey structures must resist significan
 ### Conclusion
 Investing in comprehensive structural engineering before breaking ground is not an optional cost—it is the ultimate safeguard for human life, financial capital, and long-term asset value.
         `,
-        featured_image: 'https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=1400&q=80',
+        featured_image: '/uploads/projects/ijebu-ode-substructure-foundation/ijebu-ode-spes-team-rebar-02.jpg',
         author: 'Engr. SPES Technical Directorate',
         publication_status: 'published',
         published_at: '2026-02-15 09:00:00',
@@ -356,7 +297,7 @@ Given seasonal market fluctuations, establishing fixed-rate material supply agre
 ### Conclusion
 A disciplined pre-construction phase led by experienced professionals converts ambitious visions into structurally sound, financially controlled realities.
         `,
-        featured_image: 'https://images.unsplash.com/photo-1541888946425-d0fbb186c5f7?auto=format&fit=crop&w=1400&q=80',
+        featured_image: '/uploads/projects/ijebu-ode-substructure-foundation/ijebu-ode-foundation-overview-01.jpg',
         author: 'SPES Construction Management Team',
         publication_status: 'published',
         published_at: '2026-02-28 10:30:00',
@@ -388,7 +329,7 @@ Safe job sites are productive job sites. Construction managers enforce mandatory
 ### Summary
 Partnering with a professional construction management firm like SPES Swiftpace ensures that your capital investment is safeguarded through daily oversight, contractual accountability, and engineering rigor.
         `,
-        featured_image: 'https://images.unsplash.com/photo-1581094794329-c8112a89af12?auto=format&fit=crop&w=1400&q=80',
+        featured_image: '/assets/projects/suspended-slab-decking/suspended-slab-decking-01.jpg',
         author: 'SPES Project Directorate',
         publication_status: 'published',
         published_at: '2026-03-01 14:15:00',
@@ -413,7 +354,7 @@ Great architecture is a dialogue between human aspiration and environmental cont
 
 At SPES Swiftpace Engineering Solutions Limited, our architectural practice fuses regional responsiveness with cutting-edge 3D visualization and sustainable materials planning.
         `,
-        featured_image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1400&q=80',
+        featured_image: '/uploads/projects/architectural-facade-concepts/arch-terraced-streetscape-01.jpg',
         author: 'SPES Architectural Studio',
         publication_status: 'published',
         published_at: '2026-03-03 11:00:00',

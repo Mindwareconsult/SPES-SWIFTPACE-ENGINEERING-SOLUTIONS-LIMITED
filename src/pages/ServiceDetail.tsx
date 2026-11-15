@@ -205,6 +205,50 @@ export const ServiceDetail: React.FC = () => {
               </StaggerContainer>
             </div>
 
+            {/* Supporting SPES Project Photography */}
+            {service.galleryImages && service.galleryImages.length > 0 && (
+              <MotionReveal direction="up" duration={0.6} className="space-y-5 pt-4 border-t border-white/10">
+                <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
+                  <div>
+                    <h3 className="font-serif-luxury text-2xl font-bold text-white">
+                      Verified Work & Discipline Visuals
+                    </h3>
+                    <p className="text-xs text-slate-400 mt-1">
+                      Representative project photography and architectural studies supporting our {service.title.toLowerCase()} practice.
+                    </p>
+                  </div>
+                  {service.relatedCategory && (
+                    <Link
+                      to={`/portfolio?category=${encodeURIComponent(service.relatedCategory)}`}
+                      className="inline-flex items-center gap-1.5 text-xs font-bold text-[#12BCEB] hover:text-white transition-colors whitespace-nowrap"
+                    >
+                      <span>View Related Projects</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </Link>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {service.galleryImages.map((img, i) => (
+                    <div
+                      key={i}
+                      className="group relative h-56 rounded-2xl overflow-hidden border border-white/10 hover:border-[#12BCEB]/50 transition-all bg-[#040D1E] shadow-lg"
+                    >
+                      <img
+                        src={img.src}
+                        alt={img.alt}
+                        loading="lazy"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#06152F]/90 via-transparent to-transparent flex items-end p-4">
+                        <p className="text-xs text-slate-200 leading-snug line-clamp-2">{img.alt}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </MotionReveal>
+            )}
+
             {/* Relevant FAQs */}
             {service.faqs && service.faqs.length > 0 && (
               <MotionReveal direction="up" className="space-y-4 pt-4">

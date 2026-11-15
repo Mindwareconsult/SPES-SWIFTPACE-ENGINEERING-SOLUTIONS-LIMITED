@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate, Outlet } from 'react-router-dom';
 import { BrandLogo } from '../../components/common/BrandLogo';
+import { useAuth } from '../../context/AuthContext';
 import { 
   LayoutDashboard, 
   FolderKanban, 
@@ -12,48 +13,34 @@ import {
   ExternalLink,
   Menu,
   X,
-  Lock,
-  UserCheck
+  UserCheck,
+  CheckCircle2,
+  ShieldAlert
 } from 'lucide-react';
 
 export const AdminLayout: React.FC = () => {
-  const [adminUser, setAdminUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
   const [mobileSidebar, setMobileSidebar] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+  const { user, loading, isAuthenticated, welcomeNotification, dismissWelcome, logout } = useAuth();
 
   useEffect(() => {
-    // Check if authenticated
-    fetch('/api/admin/me')
-      .then((res) => {
-        if (!res.ok) throw new Error('Unauthenticated');
-        return res.json();
-      })
-      .then((data) => {
-        setAdminUser(data.user);
-        setLoading(false);
-      })
-      .catch(() => {
-        navigate('/admin/login');
-      });
-  }, [navigate]);
+    if (!loading && !isAuthenticated) {
+      navigate('/admin/login', { replace: true });
+    }
+  }, [loading, isAuthenticated, navigate]);
 
   const handleLogout = async () => {
-    try {
-      await fetch('/api/admin/logout', { method: 'POST' });
-    } catch {
-      // ignore
-    }
-    navigate('/admin/login');
+    await logout();
+    navigate('/admin/login', { replace: true });
   };
 
-  if (loading) {
+  if (loading || !isAuthenticated || !user) {
     return (
       <div className="min-h-screen bg-[#040D1E] flex items-center justify-center text-white">
         <div className="flex flex-col items-center gap-3">
           <div className="w-8 h-8 rounded-full border-2 border-[#12BCEB] border-t-transparent animate-spin" />
-          <span className="text-xs text-slate-400">Authenticating SPES Secure Portal...</span>
+          <span className="text-xs text-slate-400">Verifying SPES Secure Portal Session...</span>
         </div>
       </div>
     );
@@ -78,6 +65,7 @@ export const AdminLayout: React.FC = () => {
         <BrandLogo size="sm" showSubtitle={false} />
         <button
           onClick={() => setMobileSidebar(!mobileSidebar)}
+          aria-label="Toggle admin navigation"
           className="p-2 rounded-lg bg-white/5 text-slate-200"
         >
           {mobileSidebar ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -130,8 +118,8 @@ export const AdminLayout: React.FC = () => {
               <UserCheck className="w-4 h-4" />
             </div>
             <div className="overflow-hidden">
-              <div className="text-xs font-bold text-white truncate">{adminUser?.username || 'spesadmin'}</div>
-              <div className="text-[10px] text-slate-400 truncate">{adminUser?.email}</div>
+              <div className="text-xs font-bold text-white truncate">{user.username}</div>
+              <div className="text-[10px] text-slate-400 truncate">{user.email}</div>
             </div>
           </div>
 
@@ -147,7 +135,7 @@ export const AdminLayout: React.FC = () => {
 
             <button
               onClick={handleLogout}
-              className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg bg-red-950/40 hover:bg-red-900/60 text-[11px] text-red-300 transition-colors"
+              className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg bg-red-950/40 hover:bg-red-900/60 text-[11px] text-red-300 transition-colors cursor-pointer"
             >
               <LogOut className="w-3 h-3" />
               <span>Logout</span>
@@ -157,9 +145,46 @@ export const AdminLayout: React.FC = () => {
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 min-w-0 bg-[#040D1E] p-4 sm:p-8 overflow-y-auto">
+      <main className="flex-1 min-w-0 bg-[#040D1E] p-4 sm:p-8 overflow-y-auto space-y-6">
+        {welcomeNotification && (
+          <div
+            role="status"
+            className="flex items-center justify-between gap-4 p-4 rounded-xl bg-emerald-950/60 border border-emerald-500/40 text-emerald-100 text-xs shadow-lg"
+          >
+            <div className="flex items-center gap-2.5">
+              <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+              <span className="font-medium">{welcomeNotification}</span>
+            </div>
+            <button
+              onClick={dismissWelcome}
+              aria-label="Dismiss welcome notification"
+              className="text-emerald-300 hover:text-white cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+
+        {user.must_change_password && location.pathname !== '/admin/settings' && (
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-xl bg-amber-950/60 border border-amber-500/40 text-amber-100 text-xs shadow-lg">
+            <div className="flex items-start sm:items-center gap-2.5">
+              <ShieldAlert className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5 sm:mt-0" />
+              <span>
+                <strong>Security Action Required:</strong> You are currently using the initial administrator password. Please update your password in Settings.
+              </span>
+            </div>
+            <Link
+              to="/admin/settings#security"
+              className="px-3.5 py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/40 text-amber-200 font-bold whitespace-nowrap self-start sm:self-auto transition-colors"
+            >
+              Update Password →
+            </Link>
+          </div>
+        )}
+
         <Outlet />
       </main>
     </div>
   );
 };
+

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { authFetch } from '../../utils/authFetch';
 import { 
   FolderKanban, 
   FileText, 
@@ -21,8 +22,11 @@ export const AdminDashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/admin/dashboard-stats')
-      .then((res) => res.json())
+    authFetch('/api/admin/dashboard-stats')
+      .then((res) => {
+        if (!res.ok) throw new Error('Failed to load stats');
+        return res.json();
+      })
       .then((data) => {
         setStats(data.metrics);
         setRecentEnquiries(data.recentEnquiries || []);

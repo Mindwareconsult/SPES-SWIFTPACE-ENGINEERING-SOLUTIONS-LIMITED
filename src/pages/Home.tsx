@@ -38,7 +38,7 @@ export const Home: React.FC = () => {
     fetch('/api/projects?featured=true')
       .then((res) => res.json())
       .then((data) => {
-        if (data.projects) setProjects(data.projects.slice(0, 3));
+        if (data.projects) setProjects(data.projects.slice(0, 6));
       })
       .catch(() => {});
 
@@ -94,9 +94,9 @@ export const Home: React.FC = () => {
         {/* Background Image with Deep Blue Cinematic Overlay matching NovaEngineering styling */}
         <div className="absolute inset-0 z-0">
           <img
-            src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=2000&q=85"
-            alt="Futuristic engineering cityscape skyline"
-            className="w-full h-full object-cover object-center filter brightness-[0.4] contrast-125"
+            src="/assets/projects/commercial-column-shoring/commercial-column-shoring-01.jpg"
+            alt="SPES Swiftpace reinforced concrete column formwork and structural engineering works"
+            className="w-full h-full object-cover object-center filter brightness-[0.38] contrast-125"
           />
           {/* Layered deep navy gradients and subtle radial cyan glows */}
           <div className="absolute inset-0 bg-gradient-to-t from-[#06152F] via-[#06152F]/70 to-[#040D1E]/90" />
@@ -308,6 +308,7 @@ export const Home: React.FC = () => {
                       <img
                         src={service.heroImage}
                         alt={service.title}
+                        loading="lazy"
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-[#081D43] via-[#081D43]/40 to-transparent" />
@@ -456,7 +457,8 @@ export const Home: React.FC = () => {
                     <div className="relative h-60 overflow-hidden">
                       <img
                         src={project.cover_image}
-                        alt={project.title}
+                        alt={`${project.title} — ${project.category}`}
+                        loading="lazy"
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-[#081D43] via-transparent to-transparent" />
@@ -581,8 +583,9 @@ export const Home: React.FC = () => {
       <section className="relative py-24 bg-[#040D1E] overflow-hidden">
         <div className="absolute inset-0 opacity-15">
           <img
-            src="https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=2000&q=80"
-            alt="Infrastructure background"
+            src="/uploads/projects/ijebu-ode-substructure-foundation/ijebu-ode-foundation-overview-01.jpg"
+            alt="SPES Swiftpace substructure concrete foundation and blockwork site in Ijebu Ode"
+            loading="lazy"
             className="w-full h-full object-cover"
           />
         </div>

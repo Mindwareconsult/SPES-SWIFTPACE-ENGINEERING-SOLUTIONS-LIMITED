@@ -1,8 +1,11 @@
+import 'dotenv/config';
 import express from 'express';
 import path from 'path';
 import cookieParser from 'cookie-parser';
 import { createServer as createViteServer } from 'vite';
 import { initDatabase } from './server/database/db';
+import { ensureAuthenticProjectsAndMedia } from './server/database/seed_authentic_projects';
+import { authenticateAdmin } from './server/middleware/auth';
 import authRoutes from './server/routes/auth';
 import projectsRoutes from './server/routes/projects';
 import blogRoutes from './server/routes/blog';
@@ -12,18 +15,32 @@ import settingsRoutes from './server/routes/settings';
 import dashboardRoutes from './server/routes/dashboard';
 
 async function startServer() {
-  // Initialize SQLite database and seed initial tables/data
+  // Initialize SQLite database and ensure authentic projects and media assets
   initDatabase();
+  ensureAuthenticProjectsAndMedia();
 
   const app = express();
+  app.disable('x-powered-by');
+  app.set('trust proxy', 1);
   const PORT = parseInt(process.env.PORT || '3000', 10);
+
+  // Security headers compatible with embedded preview & production TLS
+  app.use((_req, res, next) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+    next();
+  });
 
   app.use(express.json({ limit: '25mb' }));
   app.use(express.urlencoded({ extended: true, limit: '25mb' }));
   app.use(cookieParser());
 
-  // Static directory for file uploads
+  // Protected static directory for confidential client enquiry attachments
   const uploadsPath = path.join(process.cwd(), 'uploads');
+  app.use('/uploads/attachments', authenticateAdmin, express.static(path.join(uploadsPath, 'attachments')));
+
+  // Public static directories for published project, blog, and media images
   app.use('/uploads', express.static(uploadsPath));
 
   // Static directory for local public assets (including official logos & references)
