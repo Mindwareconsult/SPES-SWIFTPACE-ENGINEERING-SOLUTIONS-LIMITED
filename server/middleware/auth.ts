@@ -1,9 +1,9 @@
-import { Request, Response, NextFunction } from 'express';
+import type { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
-import { db } from '../database/db';
+import { db } from '../database/db.ts';
 
 export const TOKEN_TTL_SECONDS = 24 * 60 * 60; // 24 hours
 export const TOKEN_TTL_MS = TOKEN_TTL_SECONDS * 1000;

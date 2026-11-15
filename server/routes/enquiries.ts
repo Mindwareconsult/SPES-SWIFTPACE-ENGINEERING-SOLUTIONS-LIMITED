@@ -2,8 +2,8 @@ import { Router } from 'express';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
-import { db } from '../database/db';
-import { authenticateAdmin } from '../middleware/auth';
+import { db } from '../database/db.ts';
+import { authenticateAdmin } from '../middleware/auth.ts';
 
 const router = Router();
 

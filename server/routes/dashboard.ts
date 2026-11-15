@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { db } from '../database/db';
-import { authenticateAdmin } from '../middleware/auth';
+import { db } from '../database/db.ts';
+import { authenticateAdmin } from '../middleware/auth.ts';
 
 const router = Router();
 

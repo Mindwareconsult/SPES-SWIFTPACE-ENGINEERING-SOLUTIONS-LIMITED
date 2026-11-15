@@ -1,5 +1,5 @@
 import bcrypt from 'bcryptjs';
-import { db, initDatabase } from '../database/db';
+import { db, initDatabase } from '../database/db.ts';
 
 const newPassword = process.argv[2];
 

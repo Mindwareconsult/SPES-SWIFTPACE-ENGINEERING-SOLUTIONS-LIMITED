@@ -126,11 +126,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       body: JSON.stringify({ usernameOrEmail, password })
     });
 
+    const contentType = res.headers.get('content-type') || '';
+    const rawText = await res.text();
     let data: any = null;
-    try {
-      data = await res.json();
-    } catch {
-      throw new Error('Unexpected response from authentication server.');
+    if (rawText) {
+      try {
+        data = JSON.parse(rawText);
+      } catch {
+        data = null;
+      }
+    }
+
+    if (!data || typeof data !== 'object') {
+      console.error('[SPES Auth] Non-JSON authentication response:', res.status, contentType);
+      throw new Error(
+        `Unexpected response from authentication server (HTTP ${res.status}${contentType ? `, ${contentType.split(';')[0]}` : ''}).`
+      );
     }
 
     if (!res.ok) {

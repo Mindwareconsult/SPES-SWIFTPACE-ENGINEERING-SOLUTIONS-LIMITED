@@ -1,15 +1,16 @@
-import { Router, Request } from 'express';
+import { Router } from 'express';
+import type { Request } from 'express';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
-import { db } from '../database/db';
+import { db } from '../database/db.ts';
 import {
   generateToken,
   authenticateAdmin,
   extractTokenFromRequest,
   revokeToken,
-  AuthRequest,
   TOKEN_TTL_MS
-} from '../middleware/auth';
+} from '../middleware/auth.ts';
+import type { AuthRequest } from '../middleware/auth.ts';
 
 const router = Router();
 

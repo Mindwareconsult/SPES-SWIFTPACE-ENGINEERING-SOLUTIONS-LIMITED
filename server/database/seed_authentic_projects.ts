@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
-import { db } from './db';
+import { fileURLToPath } from 'url';
+import { db } from './db.ts';
 
 interface SeedProject {
   title: string;
@@ -630,8 +631,8 @@ export function ensureAuthenticProjectsAndMedia() {
   runSync();
 }
 
-// Allow standalone CLI execution (`npx tsx server/database/seed_authentic_projects.ts`)
-if (typeof require !== 'undefined' && require.main === module) {
+// Allow standalone CLI execution (`node server/database/seed_authentic_projects.ts`)
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   ensureAuthenticProjectsAndMedia();
   console.log('[SPES] Authentic project & media sync completed.');
 }
